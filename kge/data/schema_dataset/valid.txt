@@ -1,0 +1,5 @@
+Playlist	OF	Genre
+Song	IN	Playlist
+Playlist	CREATED_BY	User
+Artist	SING	Song
+Artist	OF	Genre

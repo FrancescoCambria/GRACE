@@ -1,0 +1,464 @@
+Experiment Summary - 2026-05-27 19:20:28.766367
+Each configuration run 5 times.
+============================================================================================================================================
+Configuration                            | Hyperparameters (TS/LR/ST/Rot/Met)       | Metric       | Average    | Max       
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 81.20, Avg Time: 383.44s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.9473     | 0.9550    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.9336     | 0.9567    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.9641     | 0.9776    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.9483     | 0.9560    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.9693     | 0.9814    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9773    
+                                         | Complex Niche                            | avg_pred     | 0.9773    
+                                         | Complex Niche                            | recall       | 0.9773    
+                                         | Expert Synergy                           | accuracy     | 0.9283    
+                                         | Expert Synergy                           | avg_pred     | 0.9283    
+                                         | Expert Synergy                           | recall       | 0.9283    
+                                         | Standard                                 | accuracy     | 0.9303    
+                                         | Standard                                 | avg_pred     | 0.0697    
+                                         | Standard                                 | fpr          | 0.0697    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 864.80, Avg Time: 89.52s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.8610     | 0.8725    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.8748     | 0.9141    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.8459     | 0.8728    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8594     | 0.8679    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.9276     | 0.9381    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.6658    
+                                         | Complex Niche                            | avg_pred     | 0.6658    
+                                         | Complex Niche                            | recall       | 0.6658    
+                                         | Expert Synergy                           | accuracy     | 0.9390    
+                                         | Expert Synergy                           | avg_pred     | 0.9390    
+                                         | Expert Synergy                           | recall       | 0.9390    
+                                         | Standard                                 | accuracy     | 0.8762    
+                                         | Standard                                 | avg_pred     | 0.1238    
+                                         | Standard                                 | fpr          | 0.1238    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 1384.60, Avg Time: 45.72s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.5938     | 0.6075    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.6249     | 0.6449    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.4758     | 0.6135    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.5359     | 0.6082    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.6148     | 0.6195    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.9626    
+                                         | Complex Bridge                           | avg_pred     | 0.9626    
+                                         | Complex Bridge                           | recall       | 0.9626    
+                                         | Complex Niche                            | accuracy     | 0.4740    
+                                         | Complex Niche                            | avg_pred     | 0.4740    
+                                         | Complex Niche                            | recall       | 0.4740    
+                                         | Expert Synergy                           | accuracy     | 0.1774    
+                                         | Expert Synergy                           | avg_pred     | 0.1774    
+                                         | Expert Synergy                           | recall       | 0.1774    
+                                         | Standard                                 | accuracy     | 0.7123    
+                                         | Standard                                 | avg_pred     | 0.2877    
+                                         | Standard                                 | fpr          | 0.2877    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 368.20, Avg Time: 846.36s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.8940     | 0.9344    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.8913     | 0.9206    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.9013     | 0.9535    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8950     | 0.9359    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.9071     | 0.9476    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9021    
+                                         | Complex Niche                            | avg_pred     | 0.9021    
+                                         | Complex Niche                            | recall       | 0.9021    
+                                         | Expert Synergy                           | accuracy     | 0.8395    
+                                         | Expert Synergy                           | avg_pred     | 0.8395    
+                                         | Expert Synergy                           | recall       | 0.8395    
+                                         | Standard                                 | accuracy     | 0.8866    
+                                         | Standard                                 | avg_pred     | 0.1134    
+                                         | Standard                                 | fpr          | 0.1134    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 706.20, Avg Time: 63.32s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.7769     | 0.8711    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.6869     | 0.9138    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.6722     | 0.8673    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.6780     | 0.8670    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.8580     | 0.9379    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.7980    
+                                         | Complex Bridge                           | avg_pred     | 0.7980    
+                                         | Complex Bridge                           | recall       | 0.7980    
+                                         | Complex Niche                            | accuracy     | 0.5284    
+                                         | Complex Niche                            | avg_pred     | 0.5284    
+                                         | Complex Niche                            | recall       | 0.5284    
+                                         | Expert Synergy                           | accuracy     | 0.7498    
+                                         | Expert Synergy                           | avg_pred     | 0.7498    
+                                         | Expert Synergy                           | recall       | 0.7498    
+                                         | Standard                                 | accuracy     | 0.8825    
+                                         | Standard                                 | avg_pred     | 0.1175    
+                                         | Standard                                 | fpr          | 0.1175    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 806.60, Avg Time: 14.74s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.5522     | 0.5944    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.5794     | 0.6291    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.6034     | 1.0000    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.5454     | 0.6686    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.6175     | 0.6347    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.9167    
+                                         | Complex Bridge                           | avg_pred     | 0.9167    
+                                         | Complex Bridge                           | recall       | 0.9167    
+                                         | Complex Niche                            | accuracy     | 0.5812    
+                                         | Complex Niche                            | avg_pred     | 0.5812    
+                                         | Complex Niche                            | recall       | 0.5812    
+                                         | Expert Synergy                           | accuracy     | 0.4335    
+                                         | Expert Synergy                           | avg_pred     | 0.4335    
+                                         | Expert Synergy                           | recall       | 0.4335    
+                                         | Standard                                 | accuracy     | 0.5008    
+                                         | Standard                                 | avg_pred     | 0.4992    
+                                         | Standard                                 | fpr          | 0.4992    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 123.80, Avg Time: 168.89s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.8236     | 0.8674    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.8493     | 0.9423    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.8146     | 0.8682    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.8252     | 0.8575    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.8549     | 0.8981    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.9925    
+                                         | Complex Bridge                           | avg_pred     | 0.9925    
+                                         | Complex Bridge                           | recall       | 0.9925    
+                                         | Complex Niche                            | accuracy     | 0.8212    
+                                         | Complex Niche                            | avg_pred     | 0.8212    
+                                         | Complex Niche                            | recall       | 0.8212    
+                                         | Expert Synergy                           | accuracy     | 0.6985    
+                                         | Expert Synergy                           | avg_pred     | 0.6985    
+                                         | Expert Synergy                           | recall       | 0.6985    
+                                         | Standard                                 | accuracy     | 0.8326    
+                                         | Standard                                 | avg_pred     | 0.1674    
+                                         | Standard                                 | fpr          | 0.1674    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 946.60, Avg Time: 83.48s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.7695     | 0.8674    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.6704     | 0.9131    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.6799     | 0.8870    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.6731     | 0.8606    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.8321     | 0.9060    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.7962    
+                                         | Complex Bridge                           | avg_pred     | 0.7962    
+                                         | Complex Bridge                           | recall       | 0.7962    
+                                         | Complex Niche                            | accuracy     | 0.5358    
+                                         | Complex Niche                            | avg_pred     | 0.5358    
+                                         | Complex Niche                            | recall       | 0.5358    
+                                         | Expert Synergy                           | accuracy     | 0.7671    
+                                         | Expert Synergy                           | avg_pred     | 0.7671    
+                                         | Expert Synergy                           | recall       | 0.7671    
+                                         | Standard                                 | accuracy     | 0.8602    
+                                         | Standard                                 | avg_pred     | 0.1398    
+                                         | Standard                                 | fpr          | 0.1398    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 1060.00, Avg Time: 13.23s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.5741     | 0.6011    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.5065     | 0.6400    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.3649     | 0.4791    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.4240     | 0.5465    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.5951     | 0.6255    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.7817    
+                                         | Complex Bridge                           | avg_pred     | 0.7817    
+                                         | Complex Bridge                           | recall       | 0.7817    
+                                         | Complex Niche                            | accuracy     | 0.3570    
+                                         | Complex Niche                            | avg_pred     | 0.3570    
+                                         | Complex Niche                            | recall       | 0.3570    
+                                         | Expert Synergy                           | accuracy     | 0.1180    
+                                         | Expert Synergy                           | avg_pred     | 0.1180    
+                                         | Expert Synergy                           | recall       | 0.1180    
+                                         | Standard                                 | accuracy     | 0.7860    
+                                         | Standard                                 | avg_pred     | 0.2140    
+                                         | Standard                                 | fpr          | 0.2140    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 76.00, Avg Time: 358.04s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.8623     | 0.8812    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.8342     | 0.8611    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.9121     | 0.9412    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8709     | 0.8868    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.9368     | 0.9430    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9751    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9751    
+                                         | Artist Micro-Trend                       | recall       | 0.9751    
+                                         | Genre Crossover                          | accuracy     | 0.5481    
+                                         | Genre Crossover                          | avg_pred     | 0.5481    
+                                         | Genre Crossover                          | recall       | 0.5481    
+                                         | Human Curator                            | accuracy     | 0.9801    
+                                         | Human Curator                            | avg_pred     | 0.9801    
+                                         | Human Curator                            | recall       | 0.9801    
+                                         | Standard                                 | accuracy     | 0.8105    
+                                         | Standard                                 | avg_pred     | 0.1895    
+                                         | Standard                                 | fpr          | 0.1895    
+                                         | Vibe-to-Genre                            | accuracy     | 0.9281    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.9281    
+                                         | Vibe-to-Genre                            | recall       | 0.9281    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 938.80, Avg Time: 95.51s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.8155     | 0.8638    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.7853     | 0.8300    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.8777     | 0.9216    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8289     | 0.8734    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.9024     | 0.9353    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9701    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9701    
+                                         | Artist Micro-Trend                       | recall       | 0.9701    
+                                         | Genre Crossover                          | accuracy     | 0.9149    
+                                         | Genre Crossover                          | avg_pred     | 0.9149    
+                                         | Genre Crossover                          | recall       | 0.9149    
+                                         | Human Curator                            | accuracy     | 0.8145    
+                                         | Human Curator                            | avg_pred     | 0.8145    
+                                         | Human Curator                            | recall       | 0.8145    
+                                         | Standard                                 | accuracy     | 0.7509    
+                                         | Standard                                 | avg_pred     | 0.2491    
+                                         | Standard                                 | fpr          | 0.2491    
+                                         | Vibe-to-Genre                            | accuracy     | 0.9384    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.9384    
+                                         | Vibe-to-Genre                            | recall       | 0.9384    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 1626.40, Avg Time: 55.00s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.7785     | 0.7925    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.7322     | 0.7352    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.8910     | 0.9412    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8036     | 0.8223    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.8434     | 0.8489    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9801    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9801    
+                                         | Artist Micro-Trend                       | recall       | 0.9801    
+                                         | Genre Crossover                          | accuracy     | 0.8826    
+                                         | Genre Crossover                          | avg_pred     | 0.8826    
+                                         | Genre Crossover                          | recall       | 0.8826    
+                                         | Human Curator                            | accuracy     | 0.9589    
+                                         | Human Curator                            | avg_pred     | 0.9589    
+                                         | Human Curator                            | recall       | 0.9589    
+                                         | Standard                                 | accuracy     | 0.6617    
+                                         | Standard                                 | avg_pred     | 0.3383    
+                                         | Standard                                 | fpr          | 0.3383    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7465    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7465    
+                                         | Vibe-to-Genre                            | recall       | 0.7465    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 83.20, Avg Time: 211.22s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.7564     | 0.8211    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.7980     | 0.8465    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.7067     | 0.9017    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.7360     | 0.8369    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.8658     | 0.9093    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.7477    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.7477    
+                                         | Artist Micro-Trend                       | recall       | 0.7477    
+                                         | Genre Crossover                          | accuracy     | 0.3264    
+                                         | Genre Crossover                          | avg_pred     | 0.3264    
+                                         | Genre Crossover                          | recall       | 0.3264    
+                                         | Human Curator                            | accuracy     | 0.8476    
+                                         | Human Curator                            | avg_pred     | 0.8476    
+                                         | Human Curator                            | recall       | 0.8476    
+                                         | Standard                                 | accuracy     | 0.8077    
+                                         | Standard                                 | avg_pred     | 0.1923    
+                                         | Standard                                 | fpr          | 0.1923    
+                                         | Vibe-to-Genre                            | accuracy     | 0.6076    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.6076    
+                                         | Vibe-to-Genre                            | recall       | 0.6076    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 1299.60, Avg Time: 108.51s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.8022     | 0.8111    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.7540     | 0.7667    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.9087     | 0.9607    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.8236     | 0.8310    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.8893     | 0.9059    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9650    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9650    
+                                         | Artist Micro-Trend                       | recall       | 0.9650    
+                                         | Genre Crossover                          | accuracy     | 0.8808    
+                                         | Genre Crossover                          | avg_pred     | 0.8808    
+                                         | Genre Crossover                          | recall       | 0.8808    
+                                         | Human Curator                            | accuracy     | 0.8581    
+                                         | Human Curator                            | avg_pred     | 0.8581    
+                                         | Human Curator                            | recall       | 0.8581    
+                                         | Standard                                 | accuracy     | 0.6920    
+                                         | Standard                                 | avg_pred     | 0.3080    
+                                         | Standard                                 | fpr          | 0.3080    
+                                         | Vibe-to-Genre                            | accuracy     | 0.9894    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.9894    
+                                         | Vibe-to-Genre                            | recall       | 0.9894    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 1470.00, Avg Time: 28.07s
+--------------------------------------------------
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Accuracy     | 0.7622     | 0.7744    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Precision    | 0.7067     | 0.7370    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | Recall       | 0.9179     | 0.9978    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | F1-Score     | 0.7962     | 0.8132    
+                                         | TS:0.9|LR:2e-5|ST:256|R:128|M:256        | AUC-ROC      | 0.8259     | 0.8367    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9693    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9693    
+                                         | Artist Micro-Trend                       | recall       | 0.9693    
+                                         | Genre Crossover                          | accuracy     | 0.8194    
+                                         | Genre Crossover                          | avg_pred     | 0.8194    
+                                         | Genre Crossover                          | recall       | 0.8194    
+                                         | Human Curator                            | accuracy     | 0.9603    
+                                         | Human Curator                            | avg_pred     | 0.9603    
+                                         | Human Curator                            | recall       | 0.9603    
+                                         | Standard                                 | accuracy     | 0.6011    
+                                         | Standard                                 | avg_pred     | 0.3989    
+                                         | Standard                                 | fpr          | 0.3989    
+                                         | Vibe-to-Genre                            | accuracy     | 0.8683    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.8683    
+                                         | Vibe-to-Genre                            | recall       | 0.8683    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. ST + RotatE + Supp/Conf
+Avg Epochs: 70.40, Avg Time: 101.26s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.6674     | 0.7168    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.6576     | 0.7470    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.8169     | 1.0000    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.7164     | 0.7445    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.8104     | 0.8207    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.7879    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.7879    
+                                         | Artist Micro-Trend                       | recall       | 0.7879    
+                                         | Genre Crossover                          | accuracy     | 0.5459    
+                                         | Genre Crossover                          | avg_pred     | 0.5459    
+                                         | Genre Crossover                          | recall       | 0.5459    
+                                         | Human Curator                            | accuracy     | 0.9114    
+                                         | Human Curator                            | avg_pred     | 0.9114    
+                                         | Human Curator                            | recall       | 0.9114    
+                                         | Standard                                 | accuracy     | 0.5120    
+                                         | Standard                                 | avg_pred     | 0.4880    
+                                         | Standard                                 | fpr          | 0.4880    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7771    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7771    
+                                         | Vibe-to-Genre                            | recall       | 0.7771    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. RotatE + Supp/Conf
+Avg Epochs: 1497.40, Avg Time: 132.16s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.7638     | 0.7979    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.7238     | 0.7596    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.8897     | 0.9938    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.7940     | 0.8273    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.8386     | 0.8775    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9180    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9180    
+                                         | Artist Micro-Trend                       | recall       | 0.9180    
+                                         | Genre Crossover                          | accuracy     | 0.8342    
+                                         | Genre Crossover                          | avg_pred     | 0.8342    
+                                         | Genre Crossover                          | recall       | 0.8342    
+                                         | Human Curator                            | accuracy     | 0.8652    
+                                         | Human Curator                            | avg_pred     | 0.8652    
+                                         | Human Curator                            | recall       | 0.8652    
+                                         | Standard                                 | accuracy     | 0.6330    
+                                         | Standard                                 | avg_pred     | 0.3670    
+                                         | Standard                                 | fpr          | 0.3670    
+                                         | Vibe-to-Genre                            | accuracy     | 0.9453    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.9453    
+                                         | Vibe-to-Genre                            | recall       | 0.9453    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 3. Supp/Conf
+Avg Epochs: 1584.60, Avg Time: 19.00s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Accuracy     | 0.7556     | 0.7611    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Precision    | 0.6981     | 0.7255    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | Recall       | 0.9223     | 1.0000    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | F1-Score     | 0.7929     | 0.8067    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:256       | AUC-ROC      | 0.8157     | 0.8211    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9673    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9673    
+                                         | Artist Micro-Trend                       | recall       | 0.9673    
+                                         | Genre Crossover                          | accuracy     | 0.8141    
+                                         | Genre Crossover                          | avg_pred     | 0.8141    
+                                         | Genre Crossover                          | recall       | 0.8141    
+                                         | Human Curator                            | accuracy     | 0.9573    
+                                         | Human Curator                            | avg_pred     | 0.9573    
+                                         | Human Curator                            | recall       | 0.9573    
+                                         | Standard                                 | accuracy     | 0.5824    
+                                         | Standard                                 | avg_pred     | 0.4176    
+                                         | Standard                                 | fpr          | 0.4176    
+                                         | Vibe-to-Genre                            | accuracy     | 0.8913    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.8913    
+                                         | Vibe-to-Genre                            | recall       | 0.8913    
+============================================================================================================================================

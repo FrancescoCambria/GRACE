@@ -1,0 +1,269 @@
+Experiment Summary - 2026-05-26 14:57:09.305542
+Each configuration run 5 times.
+============================================================================================================================================
+Configuration                            | Hyperparameters (TS/LR/ST/Rot/Met)       | Metric       | Average    | Max       
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 1. Support/Conf only
+Avg Epochs: 1614.00, Avg Time: 67.66s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.5963     | 0.6288    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.6230     | 0.6449    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.4918     | 0.6633    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.5457     | 0.6417    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.6058     | 0.6149    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.9670    
+                                         | Complex Bridge                           | avg_pred     | 0.9670    
+                                         | Complex Bridge                           | recall       | 0.9670    
+                                         | Complex Niche                            | accuracy     | 0.4971    
+                                         | Complex Niche                            | avg_pred     | 0.4971    
+                                         | Complex Niche                            | recall       | 0.4971    
+                                         | Expert Synergy                           | accuracy     | 0.1935    
+                                         | Expert Synergy                           | avg_pred     | 0.1935    
+                                         | Expert Synergy                           | recall       | 0.1935    
+                                         | Standard                                 | accuracy     | 0.7013    
+                                         | Standard                                 | avg_pred     | 0.2987    
+                                         | Standard                                 | fpr          | 0.2987    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 2. ST only
+Avg Epochs: 474.20, Avg Time: 2412.17s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9610     | 0.9775    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9686     | 0.9898    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9531     | 0.9651    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9608     | 0.9773    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9912     | 0.9971    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9443    
+                                         | Complex Niche                            | avg_pred     | 0.9443    
+                                         | Complex Niche                            | recall       | 0.9443    
+                                         | Expert Synergy                           | accuracy     | 0.9339    
+                                         | Expert Synergy                           | avg_pred     | 0.9339    
+                                         | Expert Synergy                           | recall       | 0.9339    
+                                         | Standard                                 | accuracy     | 0.9689    
+                                         | Standard                                 | avg_pred     | 0.0311    
+                                         | Standard                                 | fpr          | 0.0311    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 3. ST only + MGR syntax
+Avg Epochs: 138.20, Avg Time: 1853.58s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9485     | 0.9625    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9602     | 0.9869    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9367     | 0.9726    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9480     | 0.9616    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9851     | 0.9937    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9165    
+                                         | Complex Niche                            | avg_pred     | 0.9165    
+                                         | Complex Niche                            | recall       | 0.9165    
+                                         | Expert Synergy                           | accuracy     | 0.9187    
+                                         | Expert Synergy                           | avg_pred     | 0.9187    
+                                         | Expert Synergy                           | recall       | 0.9187    
+                                         | Standard                                 | accuracy     | 0.9604    
+                                         | Standard                                 | avg_pred     | 0.0396    
+                                         | Standard                                 | fpr          | 0.0396    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 4. ST only + Supp/Conf
+Avg Epochs: 177.00, Avg Time: 858.51s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9503     | 0.9650    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9584     | 0.9690    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9416     | 0.9651    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9498     | 0.9651    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9625     | 0.9779    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9290    
+                                         | Complex Niche                            | avg_pred     | 0.9290    
+                                         | Complex Niche                            | recall       | 0.9290    
+                                         | Expert Synergy                           | accuracy     | 0.9190    
+                                         | Expert Synergy                           | avg_pred     | 0.9190    
+                                         | Expert Synergy                           | recall       | 0.9190    
+                                         | Standard                                 | accuracy     | 0.9589    
+                                         | Standard                                 | avg_pred     | 0.0411    
+                                         | Standard                                 | fpr          | 0.0411    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 5. ST only + Supp/Conf + mgr syntax
+Avg Epochs: 134.60, Avg Time: 1826.29s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9532     | 0.9675    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9568     | 0.9973    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9511     | 0.9751    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9534     | 0.9669    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9699     | 0.9767    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 0.9957    
+                                         | Complex Bridge                           | avg_pred     | 0.9957    
+                                         | Complex Bridge                           | recall       | 0.9957    
+                                         | Complex Niche                            | accuracy     | 0.9108    
+                                         | Complex Niche                            | avg_pred     | 0.9108    
+                                         | Complex Niche                            | recall       | 0.9108    
+                                         | Expert Synergy                           | accuracy     | 0.9655    
+                                         | Expert Synergy                           | avg_pred     | 0.9655    
+                                         | Expert Synergy                           | recall       | 0.9655    
+                                         | Standard                                 | accuracy     | 0.9554    
+                                         | Standard                                 | avg_pred     | 0.0446    
+                                         | Standard                                 | fpr          | 0.0446    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 6. RotatE only
+Avg Epochs: 888.00, Avg Time: 74.88s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.8713     | 0.8712    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9139     | 0.9139    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.8204     | 0.8204    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.8647     | 0.8647    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9139     | 0.9282    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.6213    
+                                         | Complex Niche                            | avg_pred     | 0.6213    
+                                         | Complex Niche                            | recall       | 0.6213    
+                                         | Expert Synergy                           | accuracy     | 0.9177    
+                                         | Expert Synergy                           | avg_pred     | 0.9177    
+                                         | Expert Synergy                           | recall       | 0.9177    
+                                         | Standard                                 | accuracy     | 0.9223    
+                                         | Standard                                 | avg_pred     | 0.0777    
+                                         | Standard                                 | fpr          | 0.0777    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 7. RotatE only + Supp/Conf
+Avg Epochs: 778.60, Avg Time: 77.45s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.8655     | 0.8725    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.8842     | 0.9071    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.8429     | 0.8554    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.8628     | 0.8679    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9329     | 0.9370    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.6632    
+                                         | Complex Niche                            | avg_pred     | 0.6632    
+                                         | Complex Niche                            | recall       | 0.6632    
+                                         | Expert Synergy                           | accuracy     | 0.9337    
+                                         | Expert Synergy                           | avg_pred     | 0.9337    
+                                         | Expert Synergy                           | recall       | 0.9337    
+                                         | Standard                                 | accuracy     | 0.8882    
+                                         | Standard                                 | avg_pred     | 0.1118    
+                                         | Standard                                 | fpr          | 0.1118    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 8. ST + RotatE
+Avg Epochs: 79.80, Avg Time: 430.22s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9632     | 0.9762    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9709     | 0.9948    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9561     | 0.9825    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9631     | 0.9759    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9717     | 0.9799    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9132    
+                                         | Complex Niche                            | avg_pred     | 0.9132    
+                                         | Complex Niche                            | recall       | 0.9132    
+                                         | Expert Synergy                           | accuracy     | 0.9732    
+                                         | Expert Synergy                           | avg_pred     | 0.9732    
+                                         | Expert Synergy                           | recall       | 0.9732    
+                                         | Standard                                 | accuracy     | 0.9704    
+                                         | Standard                                 | avg_pred     | 0.0296    
+                                         | Standard                                 | fpr          | 0.0296    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 9. ST + RotatE + Supp/Conf
+Avg Epochs: 80.00, Avg Time: 429.79s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9557     | 0.9625    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9548     | 0.9843    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9581     | 0.9875    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9560     | 0.9617    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9660     | 0.9771    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9226    
+                                         | Complex Niche                            | avg_pred     | 0.9226    
+                                         | Complex Niche                            | recall       | 0.9226    
+                                         | Expert Synergy                           | accuracy     | 0.9695    
+                                         | Expert Synergy                           | avg_pred     | 0.9695    
+                                         | Expert Synergy                           | recall       | 0.9695    
+                                         | Standard                                 | accuracy     | 0.9534    
+                                         | Standard                                 | avg_pred     | 0.0466    
+                                         | Standard                                 | fpr          | 0.0466    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 11. ST (mgr syntax) + RotatE
+Avg Epochs: 66.80, Avg Time: 976.38s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9228     | 0.9437    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9210     | 0.9700    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9297     | 0.9950    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9237     | 0.9435    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9556     | 0.9655    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9210    
+                                         | Complex Niche                            | avg_pred     | 0.9210    
+                                         | Complex Niche                            | recall       | 0.9210    
+                                         | Expert Synergy                           | accuracy     | 0.8957    
+                                         | Expert Synergy                           | avg_pred     | 0.8957    
+                                         | Expert Synergy                           | recall       | 0.8957    
+                                         | Standard                                 | accuracy     | 0.9158    
+                                         | Standard                                 | avg_pred     | 0.0842    
+                                         | Standard                                 | fpr          | 0.0842    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_Structural_1000.csv
+CONFIG: 12. ST (mgr syntax) + RotatE + Supp/Conf
+Avg Epochs: 93.40, Avg Time: 1337.21s
+--------------------------------------------------
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Accuracy     | 0.9545     | 0.9712    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Precision    | 0.9503     | 0.9770    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | Recall       | 0.9601     | 0.9676    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | F1-Score     | 0.9550     | 0.9712    
+                                         | TS:0.8|LR:2e-5|ST:256|R:128|M:128        | AUC-ROC      | 0.9725     | 0.9836    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Complex Bridge                           | accuracy     | 1.0000    
+                                         | Complex Bridge                           | avg_pred     | 1.0000    
+                                         | Complex Bridge                           | recall       | 1.0000    
+                                         | Complex Niche                            | accuracy     | 0.9341    
+                                         | Complex Niche                            | avg_pred     | 0.9341    
+                                         | Complex Niche                            | recall       | 0.9341    
+                                         | Expert Synergy                           | accuracy     | 0.9630    
+                                         | Expert Synergy                           | avg_pred     | 0.9630    
+                                         | Expert Synergy                           | recall       | 0.9630    
+                                         | Standard                                 | accuracy     | 0.9489    
+                                         | Standard                                 | avg_pred     | 0.0511    
+                                         | Standard                                 | fpr          | 0.0511    
+============================================================================================================================================

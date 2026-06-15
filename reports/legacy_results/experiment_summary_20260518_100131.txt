@@ -1,0 +1,115 @@
+Experiment Summary - 2026-05-18 15:29:30.179536
+Each configuration run 5 times.
+====================================================================================================
+Configuration                            | Metric       | Average    | Max       
+----------------------------------------------------------------------------------------------------
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 2. ST only
+Avg Epochs: 249.00, Avg Time: 317.02s
+--------------------------------------------------
+                                         | Accuracy     | 0.7122     | 0.7400    
+                                         | Precision    | 0.7098     | 0.7573    
+                                         | Recall       | 0.7463     | 0.8657    
+                                         | F1-Score     | 0.7240     | 0.7724    
+                                         | AUC-ROC      | 0.7737     | 0.7918    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 3. ST only + MGR syntax
+Avg Epochs: 103.60, Avg Time: 503.97s
+--------------------------------------------------
+                                         | Accuracy     | 0.7118     | 0.7389    
+                                         | Precision    | 0.7064     | 0.7640    
+                                         | Recall       | 0.7690     | 0.9029    
+                                         | F1-Score     | 0.7282     | 0.7638    
+                                         | AUC-ROC      | 0.7795     | 0.8106    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 4. ST only + Supp/Conf
+Avg Epochs: 249.00, Avg Time: 313.25s
+--------------------------------------------------
+                                         | Accuracy     | 0.7122     | 0.7400    
+                                         | Precision    | 0.7098     | 0.7573    
+                                         | Recall       | 0.7463     | 0.8657    
+                                         | F1-Score     | 0.7240     | 0.7724    
+                                         | AUC-ROC      | 0.7737     | 0.7918    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 5. ST only + Supp/Conf + mgr syntax
+Avg Epochs: 103.60, Avg Time: 491.52s
+--------------------------------------------------
+                                         | Accuracy     | 0.7118     | 0.7389    
+                                         | Precision    | 0.7064     | 0.7640    
+                                         | Recall       | 0.7690     | 0.9029    
+                                         | F1-Score     | 0.7282     | 0.7638    
+                                         | AUC-ROC      | 0.7795     | 0.8106    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 6. RotatE only
+Avg Epochs: 889.00, Avg Time: 75.58s
+--------------------------------------------------
+                                         | Accuracy     | 0.6086     | 0.6863    
+                                         | Precision    | 0.5814     | 0.6352    
+                                         | Recall       | 0.9273     | 1.0000    
+                                         | F1-Score     | 0.7100     | 0.7457    
+                                         | AUC-ROC      | 0.6550     | 0.7590    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 7. RotatE only + Supp/Conf
+Avg Epochs: 1453.80, Avg Time: 120.40s
+--------------------------------------------------
+                                         | Accuracy     | 0.7779     | 0.8063    
+                                         | Precision    | 0.7257     | 0.7649    
+                                         | Recall       | 0.9169     | 0.9979    
+                                         | F1-Score     | 0.8073     | 0.8342    
+                                         | AUC-ROC      | 0.8506     | 0.8830    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 8. ST + RotatE
+Avg Epochs: 161.00, Avg Time: 231.27s
+--------------------------------------------------
+                                         | Accuracy     | 0.7411     | 0.7632    
+                                         | Precision    | 0.7531     | 0.7720    
+                                         | Recall       | 0.7335     | 0.8512    
+                                         | F1-Score     | 0.7408     | 0.7855    
+                                         | AUC-ROC      | 0.8033     | 0.8310    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 9. ST + RotatE + Supp/Conf
+Avg Epochs: 90.40, Avg Time: 134.17s
+--------------------------------------------------
+                                         | Accuracy     | 0.7524     | 0.7842    
+                                         | Precision    | 0.7396     | 0.7581    
+                                         | Recall       | 0.7971     | 0.8616    
+                                         | F1-Score     | 0.7638     | 0.8027    
+                                         | AUC-ROC      | 0.8446     | 0.8696    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 11. ST (mgr syntax) + RotatE
+Avg Epochs: 100.80, Avg Time: 488.05s
+--------------------------------------------------
+                                         | Accuracy     | 0.7366     | 0.7653    
+                                         | Precision    | 0.7101     | 0.7403    
+                                         | Recall       | 0.8273     | 0.9050    
+                                         | F1-Score     | 0.7620     | 0.7902    
+                                         | AUC-ROC      | 0.7929     | 0.8397    
+====================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 12. ST (mgr syntax) + RotatE + Supp/Conf
+Avg Epochs: 228.80, Avg Time: 1164.59s
+--------------------------------------------------
+                                         | Accuracy     | 0.7678     | 0.8147    
+                                         | Precision    | 0.7686     | 0.8291    
+                                         | Recall       | 0.7839     | 0.8843    
+                                         | F1-Score     | 0.7739     | 0.8151    
+                                         | AUC-ROC      | 0.8609     | 0.8881    
+====================================================================================================

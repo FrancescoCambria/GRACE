@@ -1,0 +1,302 @@
+Experiment Summary - 2026-05-25 15:30:13.120761
+Each configuration run 5 times.
+============================================================================================================================================
+Configuration                            | Hyperparameters (TS/LR/ST/Rot/Met)       | Metric       | Average    | Max       
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 1. Support/Conf only
+Avg Epochs: 1614.60, Avg Time: 23.80s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7531     | 0.7632    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.6975     | 0.7258    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.9182     | 0.9979    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7905     | 0.8059    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8113     | 0.8273    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9715    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9715    
+                                         | Artist Micro-Trend                       | recall       | 0.9715    
+                                         | Genre Crossover                          | accuracy     | 0.7759    
+                                         | Genre Crossover                          | avg_pred     | 0.7759    
+                                         | Genre Crossover                          | recall       | 0.7759    
+                                         | Human Curator                            | accuracy     | 0.9573    
+                                         | Human Curator                            | avg_pred     | 0.9573    
+                                         | Human Curator                            | recall       | 0.9573    
+                                         | Standard                                 | accuracy     | 0.5815    
+                                         | Standard                                 | avg_pred     | 0.4185    
+                                         | Standard                                 | fpr          | 0.4185    
+                                         | Vibe-to-Genre                            | accuracy     | 0.8913    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.8913    
+                                         | Vibe-to-Genre                            | recall       | 0.8913    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 2. ST only
+Avg Epochs: 249.00, Avg Time: 457.91s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7122     | 0.7400    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7098     | 0.7573    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.7463     | 0.8657    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7240     | 0.7724    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.7737     | 0.7918    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.8084    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.8084    
+                                         | Artist Micro-Trend                       | recall       | 0.8084    
+                                         | Genre Crossover                          | accuracy     | 0.3378    
+                                         | Genre Crossover                          | avg_pred     | 0.3378    
+                                         | Genre Crossover                          | recall       | 0.3378    
+                                         | Human Curator                            | accuracy     | 0.8410    
+                                         | Human Curator                            | avg_pred     | 0.8410    
+                                         | Human Curator                            | recall       | 0.8410    
+                                         | Standard                                 | accuracy     | 0.6768    
+                                         | Standard                                 | avg_pred     | 0.3232    
+                                         | Standard                                 | fpr          | 0.3232    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7319    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7319    
+                                         | Vibe-to-Genre                            | recall       | 0.7319    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 3. ST only + MGR syntax
+Avg Epochs: 105.60, Avg Time: 507.51s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7240     | 0.7453    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7417     | 0.7994    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.7145     | 0.8017    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7217     | 0.7623    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.7847     | 0.8139    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9673    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9673    
+                                         | Artist Micro-Trend                       | recall       | 0.9673    
+                                         | Genre Crossover                          | accuracy     | 0.3207    
+                                         | Genre Crossover                          | avg_pred     | 0.3207    
+                                         | Genre Crossover                          | recall       | 0.3207    
+                                         | Human Curator                            | accuracy     | 0.7617    
+                                         | Human Curator                            | avg_pred     | 0.7617    
+                                         | Human Curator                            | recall       | 0.7617    
+                                         | Standard                                 | accuracy     | 0.7339    
+                                         | Standard                                 | avg_pred     | 0.2661    
+                                         | Standard                                 | fpr          | 0.2661    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7083    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7083    
+                                         | Vibe-to-Genre                            | recall       | 0.7083    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 4. ST only + Supp/Conf
+Avg Epochs: 111.00, Avg Time: 216.73s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7244     | 0.7453    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7255     | 0.7528    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.7450     | 0.8864    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7312     | 0.7800    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8149     | 0.8264    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.8660    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.8660    
+                                         | Artist Micro-Trend                       | recall       | 0.8660    
+                                         | Genre Crossover                          | accuracy     | 0.4139    
+                                         | Genre Crossover                          | avg_pred     | 0.4139    
+                                         | Genre Crossover                          | recall       | 0.4139    
+                                         | Human Curator                            | accuracy     | 0.8552    
+                                         | Human Curator                            | avg_pred     | 0.8552    
+                                         | Human Curator                            | recall       | 0.8552    
+                                         | Standard                                 | accuracy     | 0.7030    
+                                         | Standard                                 | avg_pred     | 0.2970    
+                                         | Standard                                 | fpr          | 0.2970    
+                                         | Vibe-to-Genre                            | accuracy     | 0.6506    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.6506    
+                                         | Vibe-to-Genre                            | recall       | 0.6506    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 5. ST only + Supp/Conf + mgr syntax
+Avg Epochs: 155.80, Avg Time: 724.04s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7301     | 0.7463    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7427     | 0.7756    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.7240     | 0.8264    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7299     | 0.7678    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8178     | 0.8401    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9061    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9061    
+                                         | Artist Micro-Trend                       | recall       | 0.9061    
+                                         | Genre Crossover                          | accuracy     | 0.3520    
+                                         | Genre Crossover                          | avg_pred     | 0.3520    
+                                         | Genre Crossover                          | recall       | 0.3520    
+                                         | Human Curator                            | accuracy     | 0.7775    
+                                         | Human Curator                            | avg_pred     | 0.7775    
+                                         | Human Curator                            | recall       | 0.7775    
+                                         | Standard                                 | accuracy     | 0.7365    
+                                         | Standard                                 | avg_pred     | 0.2635    
+                                         | Standard                                 | fpr          | 0.2635    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7230    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7230    
+                                         | Vibe-to-Genre                            | recall       | 0.7230    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 6. RotatE only
+Avg Epochs: 940.60, Avg Time: 95.02s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.6107     | 0.6863    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.5783     | 0.6352    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.9388     | 1.0000    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7126     | 0.7457    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.6870     | 0.7390    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.8995    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.8995    
+                                         | Artist Micro-Trend                       | recall       | 0.8995    
+                                         | Genre Crossover                          | accuracy     | 0.5732    
+                                         | Genre Crossover                          | avg_pred     | 0.5732    
+                                         | Genre Crossover                          | recall       | 0.5732    
+                                         | Human Curator                            | accuracy     | 1.0000    
+                                         | Human Curator                            | avg_pred     | 1.0000    
+                                         | Human Curator                            | recall       | 1.0000    
+                                         | Standard                                 | accuracy     | 0.2700    
+                                         | Standard                                 | avg_pred     | 0.7300    
+                                         | Standard                                 | fpr          | 0.7300    
+                                         | Vibe-to-Genre                            | accuracy     | 1.0000    
+                                         | Vibe-to-Genre                            | avg_pred     | 1.0000    
+                                         | Vibe-to-Genre                            | recall       | 1.0000    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 7. RotatE only + Supp/Conf
+Avg Epochs: 1198.00, Avg Time: 131.04s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7482     | 0.7958    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.6992     | 0.7390    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.9112     | 0.9793    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7881     | 0.8283    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8343     | 0.8669    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9674    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9674    
+                                         | Artist Micro-Trend                       | recall       | 0.9674    
+                                         | Genre Crossover                          | accuracy     | 0.8856    
+                                         | Genre Crossover                          | avg_pred     | 0.8856    
+                                         | Genre Crossover                          | recall       | 0.8856    
+                                         | Human Curator                            | accuracy     | 0.8853    
+                                         | Human Curator                            | avg_pred     | 0.8853    
+                                         | Human Curator                            | recall       | 0.8853    
+                                         | Standard                                 | accuracy     | 0.5790    
+                                         | Standard                                 | avg_pred     | 0.4210    
+                                         | Standard                                 | fpr          | 0.4210    
+                                         | Vibe-to-Genre                            | accuracy     | 0.9468    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.9468    
+                                         | Vibe-to-Genre                            | recall       | 0.9468    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 8. ST + RotatE
+Avg Epochs: 142.80, Avg Time: 281.75s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7257     | 0.7832    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7542     | 0.8114    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.6992     | 0.8492    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7137     | 0.7923    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8024     | 0.8429    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.8567    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.8567    
+                                         | Artist Micro-Trend                       | recall       | 0.8567    
+                                         | Genre Crossover                          | accuracy     | 0.4071    
+                                         | Genre Crossover                          | avg_pred     | 0.4071    
+                                         | Genre Crossover                          | recall       | 0.4071    
+                                         | Human Curator                            | accuracy     | 0.7752    
+                                         | Human Curator                            | avg_pred     | 0.7752    
+                                         | Human Curator                            | recall       | 0.7752    
+                                         | Standard                                 | accuracy     | 0.7532    
+                                         | Standard                                 | avg_pred     | 0.2468    
+                                         | Standard                                 | fpr          | 0.2468    
+                                         | Vibe-to-Genre                            | accuracy     | 0.6343    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.6343    
+                                         | Vibe-to-Genre                            | recall       | 0.6343    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 9. ST + RotatE + Supp/Conf
+Avg Epochs: 106.20, Avg Time: 211.40s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.6886     | 0.7505    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.6889     | 0.7990    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.8145     | 1.0000    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7301     | 0.7855    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8216     | 0.8509    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9757    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9757    
+                                         | Artist Micro-Trend                       | recall       | 0.9757    
+                                         | Genre Crossover                          | accuracy     | 0.5843    
+                                         | Genre Crossover                          | avg_pred     | 0.5843    
+                                         | Genre Crossover                          | recall       | 0.5843    
+                                         | Human Curator                            | accuracy     | 0.8795    
+                                         | Human Curator                            | avg_pred     | 0.8795    
+                                         | Human Curator                            | recall       | 0.8795    
+                                         | Standard                                 | accuracy     | 0.5579    
+                                         | Standard                                 | avg_pred     | 0.4421    
+                                         | Standard                                 | fpr          | 0.4421    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7403    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7403    
+                                         | Vibe-to-Genre                            | recall       | 0.7403    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 11. ST (mgr syntax) + RotatE
+Avg Epochs: 110.60, Avg Time: 529.97s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7141     | 0.7516    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7505     | 0.7837    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.6645     | 0.8140    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.6960     | 0.7695    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.7972     | 0.8217    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9094    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9094    
+                                         | Artist Micro-Trend                       | recall       | 0.9094    
+                                         | Genre Crossover                          | accuracy     | 0.3968    
+                                         | Genre Crossover                          | avg_pred     | 0.3968    
+                                         | Genre Crossover                          | recall       | 0.3968    
+                                         | Human Curator                            | accuracy     | 0.7302    
+                                         | Human Curator                            | avg_pred     | 0.7302    
+                                         | Human Curator                            | recall       | 0.7302    
+                                         | Standard                                 | accuracy     | 0.7657    
+                                         | Standard                                 | avg_pred     | 0.2343    
+                                         | Standard                                 | fpr          | 0.2343    
+                                         | Vibe-to-Genre                            | accuracy     | 0.5758    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.5758    
+                                         | Vibe-to-Genre                            | recall       | 0.5758    
+============================================================================================================================================
+
+DATASET: RulesSpotify/LLMLogic/RulesSpotify_LLMTagged_1000.csv
+CONFIG: 12. ST (mgr syntax) + RotatE + Supp/Conf
+Avg Epochs: 90.80, Avg Time: 433.21s
+--------------------------------------------------
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Accuracy     | 0.7396     | 0.7800    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Precision    | 0.7227     | 0.7572    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | Recall       | 0.8000     | 0.9029    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | F1-Score     | 0.7568     | 0.8070    
+                                         | TS:0.95|LR:2e-5|ST:256|R:128|M:128       | AUC-ROC      | 0.8217     | 0.8358    
+                                         | Per-Category (Avg)                       | Metric       | Value     
+                                         | Artist Micro-Trend                       | accuracy     | 0.9673    
+                                         | Artist Micro-Trend                       | avg_pred     | 0.9673    
+                                         | Artist Micro-Trend                       | recall       | 0.9673    
+                                         | Genre Crossover                          | accuracy     | 0.4929    
+                                         | Genre Crossover                          | avg_pred     | 0.4929    
+                                         | Genre Crossover                          | recall       | 0.4929    
+                                         | Human Curator                            | accuracy     | 0.8628    
+                                         | Human Curator                            | avg_pred     | 0.8628    
+                                         | Human Curator                            | recall       | 0.8628    
+                                         | Standard                                 | accuracy     | 0.6768    
+                                         | Standard                                 | avg_pred     | 0.3232    
+                                         | Standard                                 | fpr          | 0.3232    
+                                         | Vibe-to-Genre                            | accuracy     | 0.7605    
+                                         | Vibe-to-Genre                            | avg_pred     | 0.7605    
+                                         | Vibe-to-Genre                            | recall       | 0.7605    
+============================================================================================================================================
