@@ -25,8 +25,14 @@ def evaluate_all_criteria(row):
     
     body_ids = [idx.strip() for idx in str(row.get('Body Node IDs', '')).split(',') if idx.strip()]
     head_ids = [idx.strip() for idx in str(row.get('Head Node IDs', '')).split(',') if idx.strip()]
-    body_p = [p.strip() for p in body_raw.split(', ') if p.strip()]
-    head_p = [p.strip() for p in head_raw.split(', ') if p.strip()]
+    
+    # Handle pattern separators (Law uses semicolon, Spotify uses comma)
+    if "; " in body_raw:
+        body_p = [p.strip() for p in body_raw.split(';') if p.strip()]
+        head_p = [p.strip() for p in head_raw.split(';') if p.strip()]
+    else:
+        body_p = [p.strip() for p in body_raw.split(', ') if p.strip()]
+        head_p = [p.strip() for p in head_raw.split(', ') if p.strip()]
     
     try:
         conf = float(row.get('Confidence', 0))
@@ -41,7 +47,7 @@ def evaluate_all_criteria(row):
     # 2. Pre-computations
     entity_types = set(re.findall(r'\(([a-zA-Z0-9_]+)\)', all_struct))
     # Add common types if they exist in text but weren't caught by regex
-    for t in ['user', 'playlist', 'artist', 'genre', 'track', 'song']:
+    for t in ['user', 'playlist', 'artist', 'genre', 'track', 'song', 'law', 'department', 'legislature', 'government', 'topic', 'article']:
         if t in all_struct:
             entity_types.add(t)
     
@@ -80,7 +86,25 @@ def evaluate_all_criteria(row):
     }
     
     macro_hits = {k: any(g in all_names for g in v) for k, v in macro_groups.items()}
-    macro_hit_counts = {k: sum(1 for g in v if g in all_names) for k, v in macro_groups.items()}
+    
+    # Law specific pre-computations
+    has_citation = "cites" in all_struct
+    
+    high_impact_keywords = [
+        "riforma", "espropriazione", "fondiaria", "indennizzo", 
+        "sicurezza", "difesa", "sanità", "nucleare", "finanza", 
+        "giustizia", "previdenza", "lavoro", "istruzione", "economia",
+        "industria", "agricoltura"
+    ]
+    has_policy_impact = any(k in all_names for k in high_impact_keywords)
+    
+    core_depts = ["giustizia", "finanze", "tesoro", "difesa", "esteri", "istruzione", "interno"]
+    has_core_dept = ("from_department" in head_struct or "department" in head_struct) and any(d in head_names for d in core_depts)
+    
+    is_complex_law = body_struct.count(';') >= 2 # 3 or more paths
+    
+    regional_keywords = ["sicilia", "sardegna", "calabria", "puglia"]
+    has_regional_scope = any(k in all_names for k in regional_keywords)
 
     # Motif counting helper
     def count_motif(pattern, text):
@@ -106,7 +130,7 @@ def evaluate_all_criteria(row):
         'Macro_AmbientWellness': 1 if macro_hits['ambient_wellness'] else 0,
         'Macro_ActivityLifestyle': 1 if macro_hits['activity_lifestyle'] else 0,
         
-        # --- Combined Macro/Structural (from genre-specific script) ---
+        # --- Combined Macro/Structural ---
         'Crit_Global': 1 if macro_hits['latin_global'] else 0,
         'Crit_Heavy_Expert': 1 if (macro_hits['rock_metal'] and is_expert) else 0,
         'Crit_Urban_Complex': 1 if (macro_hits['urban_dance'] and is_complex) else 0,
@@ -129,25 +153,68 @@ def evaluate_all_criteria(row):
         'Motif_Song_Genre_Playlist_2plus': 1 if count_motif('(Song)-[IN]->(Playlist)-[OF]->(Genre)', all_raw) >= 2 else 0,
         'Motif_Artist_Song_Playlist_2plus': 1 if count_motif('(Artist)-[SING]->(Song)-[IN]->(Playlist)', all_raw) >= 2 else 0,
         
-        # --- Original Legacy Logic ---
+        # --- Original Legacy Logic (Spotify) ---
         'Orig_Trivial_Artifact': 1 if ("created_by" in head_struct and "user" in head_struct and "playlist" in head_struct and conf > 0.85 and "genre" not in all_struct and "artist" not in all_struct) else 0,
         'Orig_Genre_Crossover': 1 if ("genre" in body_struct and "genre" in head_struct and not set(body_names.split(',')).intersection(set(head_names.split(','))) and conf > 0.8) else 0,
         'Orig_Human_Curator': 1 if ("playlist" in body_struct and "user" in head_struct and "spotify" not in all_names and (" " in body_names or len(body_names) > 20) and conf > 0.85) else 0,
         'Orig_Artist_MicroTrend': 1 if (("artist" in body_struct or "artist" in head_struct) and supp < 0.005 and conf > 0.8) else 0,
         'Orig_Vibe_to_Genre': 1 if ("playlist" in body_struct and "genre" in head_struct and " " in body_names and conf > 0.8) else 0,
 
-        # --- Domain: Law ---
+        # --- Domain: Law (Basic) ---
         'Law_Cites': 1 if "cites" in all_struct else 0,
-        'Law_Dept': 1 if "department" in head_struct else 0,
+        'Law_Dept': 1 if ("department" in head_struct or "from_department" in head_struct) else 0,
+        
+        # --- Domain: Law (Advanced/Variate) ---
+        'Law_Strategic_Citation': 1 if (has_citation and has_policy_impact) else 0,
+        'Law_Strategic_Attribution': 1 if has_core_dept else 0,
+        'Law_Policy_Target': 1 if any(k in head_names for k in ["lavoro", "economia", "riforma", "espropriazione", "fondiaria", "indennizzo", "occupazione", "previdenza", "industria"]) else 0,
+        'Law_Regional_Policy': 1 if (has_regional_scope and has_policy_impact) else 0,
+        'Law_Strategic_Complexity': 1 if (is_complex_law and has_citation and has_policy_impact) else 0,
     }
     
-    # Special "Basic4" logic
+    # Special Aggregate Criteria
     criteria['Basic4'] = 1 if (
         criteria['Macro_RockMetal'] or 
         criteria['Motif_Artist_Genre_3plus'] or 
         criteria['Macro_UrbanDance'] or 
         criteria['Motif_User_Playlist_2plus']
     ) else 0
+
+    criteria['BasicLaw'] = 1 if (criteria['Law_Cites'] or criteria['Law_Dept']) else 0
+    criteria['ComplexLaw'] = 1 if (
+        criteria['Law_Strategic_Citation'] or 
+        criteria['Law_Strategic_Attribution'] or 
+        criteria['Law_Policy_Target'] or 
+        criteria['Law_Regional_Policy'] or 
+        criteria['Law_Strategic_Complexity']
+    ) else 0
+    
+    # Expert Reasoning & Tag Logic derivation
+    reasoning = "Standard Metadata"
+    logic = "Standard"
+    
+    # Spotify logic prioritization for reasoning (if applicable)
+    if criteria['Orig_Genre_Crossover']: reasoning, logic = "Genre crossover pattern", "Genre Crossover"
+    elif criteria['Orig_Human_Curator']: reasoning, logic = "Human-curated playlist artifact", "Human Curator"
+    
+    # Law logic prioritization
+    if criteria['Law_Strategic_Citation']: 
+        reasoning, logic = f"Hybrid: Policy-impactful citation", "Strategic Citation"
+    elif criteria['Law_Strategic_Attribution']:
+        reasoning, logic = f"Functional: Core departmental attribution", "Strategic Attribution"
+    elif criteria['Law_Policy_Target']:
+        reasoning, logic = f"Semantic: High-impact policy target in head", "Policy Target"
+    elif criteria['Law_Regional_Policy']:
+        reasoning, logic = "Hybrid: High-impact policy in key regional jurisdiction", "Regional Policy"
+    elif criteria['Law_Strategic_Complexity']:
+        reasoning, logic = "Structural: Highly complex rule in citation and policy context", "Strategic Complexity"
+    elif criteria['Law_Cites']:
+        reasoning, logic = "Legislative Linkage (Rule involves citations)", "Legislative Citation"
+    elif criteria['Law_Dept']:
+        reasoning, logic = "Departmental Attribution (Predicting responsible department)", "Dept Prediction"
+
+    criteria['Expert_Reasoning'] = reasoning
+    criteria['Tag_Logic_Derived'] = logic
     
     return criteria
 
@@ -218,12 +285,16 @@ def main():
             
         for col in cols_to_add:
             df[col] = crit_df[col].values
+            
+    # Always add reasoning and derived logic if requested
+    if args.all_criteria:
+        if 'Expert_Reasoning' not in df.columns: df['Expert_Reasoning'] = crit_df['Expert_Reasoning'].values
+        if 'Tag_Logic' not in df.columns: df['Tag_Logic'] = crit_df['Tag_Logic_Derived'].values
 
     # 5. Determine Tag
     if args.criteria:
         print(f"Determining 'tag' based on: {args.criteria}")
         tag_mask = pd.Series([False] * len(df))
-        applied_logics = []
         
         for crit in args.criteria:
             if crit in crit_df.columns:
@@ -235,23 +306,30 @@ def main():
         
         df['tag'] = tag_mask.astype(int)
         
-        # Update Tag_Logic
-        def get_logic(row_idx):
+        # Update Tag_Logic and Expert_Reasoning based on the specific criteria selected
+        def get_logic_info(row_idx):
             active = []
+            reason = "Standard"
             for crit in args.criteria:
                 if crit in crit_df.columns and crit_df.iloc[row_idx][crit] == 1:
                     active.append(crit)
+                    # Use the first matching reasoning as a representative one
+                    if reason == "Standard":
+                        reason = crit_df.iloc[row_idx]['Expert_Reasoning']
                 elif f"Search_{crit}" in df.columns and df.iloc[row_idx][f"Search_{crit}"] == 1:
                     active.append(f"Search_{crit}")
-            return " + ".join(active) if active else "Standard"
+            return " + ".join(active) if active else "Standard", reason
         
-        df['Tag_Logic'] = [get_logic(i) for i in range(len(df))]
+        logics_reasons = [get_logic_info(i) for i in range(len(df))]
+        df['Tag_Logic'] = [lr[0] for lr in logics_reasons]
+        df['Expert_Reasoning'] = [lr[1] for lr in logics_reasons]
 
     # 6. Perform Analysis if requested
     if args.analyze:
         print("\n--- Analysis Report ---")
         analysis_cols = list(crit_df.columns) + search_cols
         analysis_cols = [c for c in analysis_cols if c in df.columns or c in crit_df.columns]
+        analysis_cols = [c for c in analysis_cols if c not in ['Expert_Reasoning', 'Tag_Logic_Derived']]
         
         # Temporary merge for analysis if not already merged
         temp_df = pd.concat([df, crit_df[[c for c in crit_df.columns if c not in df.columns]]], axis=1)

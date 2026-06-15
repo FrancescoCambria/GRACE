@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import json
 import time
 import itertools
+import warnings
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
@@ -48,10 +49,32 @@ def check_data_leakage(df, idx_train, idx_test):
 
 def run_joint_learning_task(args, dataset_path, run_id=1):
     """
-    Logic ported from legacy run_joint_learning.py
+    Logic ported from legacy run_joint_learning.py with enhancements for Law experiments.
     """
-    df = pd.read_csv(dataset_path, sep=args.sep)
-    essential_cols = ['Anchor Label', 'Body', 'Head', 'Body Node Names', 'Head Node Names']
+    try:
+        df = pd.read_csv(dataset_path, sep=args.sep)
+        if len(df.columns) <= 1:
+            df = pd.read_csv(dataset_path, sep=None, engine='python')
+    except:
+        df = pd.read_csv(dataset_path, sep=None, engine='python')
+
+    # Ensure required columns exist
+    if 'Body Node Names' not in df.columns:
+        if 'Body Node IDs' in df.columns:
+            df['Body Node Names'] = df['Body Node IDs']
+        else:
+            df['Body Node Names'] = ""
+            
+    if 'Head Node Names' not in df.columns:
+        if 'Head Node IDs' in df.columns:
+            df['Head Node Names'] = df['Head Node IDs']
+        else:
+            df['Head Node Names'] = ""
+    
+    df['Body Node Names'] = df['Body Node Names'].fillna("")
+    df['Head Node Names'] = df['Head Node Names'].fillna("")
+    
+    essential_cols = ['Anchor Label', 'Body', 'Head']
     df = df.dropna(subset=essential_cols)
     
     # Deduplication to prevent leakage
@@ -63,6 +86,11 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
         X_text = df.apply(translate_rule, axis=1).values
     
     y = df['tag'].values
+    X_body = df['Body'].values
+    X_body_names = df['Body Node Names'].values
+    X_head = df['Head'].values
+    X_head_names = df['Head Node Names'].values
+    X_anchor_labels = df['Anchor Label'].values
     
     X_metrics = None
     if "metrics" in args.include:
@@ -82,9 +110,10 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
     except:
         idx_train, idx_test = train_test_split(indices, test_size=args.test_size, random_state=split_random_state, stratify=y)
 
-    if check_data_leakage(df, idx_train, idx_test):
-        # We handle leakage by warning but continuing for now as per legacy behavior
-        pass
+    if len(idx_train) < len(np.unique(y)):
+        warnings.warn(f"Training set size ({len(idx_train)}) too small.")
+
+    check_data_leakage(df, idx_train, idx_test)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
@@ -103,17 +132,17 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
             epochs=args.epochs, batch_size=args.batch_size, learning_rate=args.lr, device=device,
             early_stopping_patience=args.patience, use_lr_scheduler=args.use_lr_scheduler, use_instances=("instances" in args.include)
         )
-        model.fit(X_text[idx_train], df['Body'].values[idx_train], df['Body Node Names'].values[idx_train],
-                  df['Head'].values[idx_train], df['Head Node Names'].values[idx_train],
-                  df['Anchor Label'].values[idx_train], y[idx_train],
+        model.fit(X_text[idx_train], X_body[idx_train], X_body_names[idx_train],
+                  X_head[idx_train], X_head_names[idx_train],
+                  X_anchor_labels[idx_train], y[idx_train],
                   X_metrics=X_metrics[idx_train] if X_metrics is not None else None)
         
-        y_pred = model.predict(X_text[idx_test], df['Body'].values[idx_test], df['Body Node Names'].values[idx_test],
-                               df['Head'].values[idx_test], df['Head Node Names'].values[idx_test],
-                               df['Anchor Label'].values[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)
-        y_prob = model.predict_proba(X_text[idx_test], df['Body'].values[idx_test], df['Body Node Names'].values[idx_test],
-                                     df['Head'].values[idx_test], df['Head Node Names'].values[idx_test],
-                                     df['Anchor Label'].values[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)[:, 1]
+        y_pred = model.predict(X_text[idx_test], X_body[idx_test], X_body_names[idx_test],
+                               X_head[idx_test], X_head_names[idx_test],
+                               X_anchor_labels[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)
+        y_prob = model.predict_proba(X_text[idx_test], X_body[idx_test], X_body_names[idx_test],
+                                     X_head[idx_test], X_head_names[idx_test],
+                                     X_anchor_labels[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)[:, 1]
 
     elif use_q2b:
         model = JointSTQ2BFlexibleWrapper(
@@ -122,13 +151,13 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
             epochs=args.epochs, batch_size=args.batch_size, learning_rate=args.lr, device=device,
             early_stopping_patience=args.patience, use_lr_scheduler=args.use_lr_scheduler
         )
-        model.fit(X_text[idx_train], df['Body'].values[idx_train], df['Body Node Names'].values[idx_train],
-                  df['Head'].values[idx_train], df['Head Node Names'].values[idx_train], y[idx_train])
+        model.fit(X_text[idx_train], X_body[idx_train], X_body_names[idx_train],
+                  X_head[idx_train], X_head_names[idx_train], y[idx_train])
         
-        y_pred = model.predict(X_text[idx_test], df['Body'].values[idx_test], df['Body Node Names'].values[idx_test],
-                               df['Head'].values[idx_test], df['Head Node Names'].values[idx_test])
-        y_prob = model.predict_proba(X_text[idx_test], df['Body'].values[idx_test], df['Body Node Names'].values[idx_test],
-                                     df['Head'].values[idx_test], df['Head Node Names'].values[idx_test])[:, 1]
+        y_pred = model.predict(X_text[idx_test], X_body[idx_test], X_body_names[idx_test],
+                               X_head[idx_test], X_head_names[idx_test])
+        y_prob = model.predict_proba(X_text[idx_test], X_body[idx_test], X_body_names[idx_test],
+                                     X_head[idx_test], X_head_names[idx_test])[:, 1]
     else:
         model = JointSTDeepCTRWrapper(
             use_st=use_st, use_metrics=use_metrics, metric_dim=args.metric_dim, epochs=args.epochs, batch_size=args.batch_size,
@@ -138,55 +167,80 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
         y_pred = model.predict(X_text[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)
         y_prob = model.predict_proba(X_text[idx_test], X_metrics=X_metrics[idx_test] if X_metrics is not None else None)[:, 1]
 
+    y_test_true = y[idx_test]
     metrics = {
-        'Accuracy': accuracy_score(y[idx_test], y_pred),
-        'Precision': precision_score(y[idx_test], y_pred, zero_division=0),
-        'Recall': recall_score(y[idx_test], y_pred, zero_division=0),
-        'F1-Score': f1_score(y[idx_test], y_pred, zero_division=0),
-        'AUC-ROC': roc_auc_score(y[idx_test], y_prob)
+        'Accuracy': accuracy_score(y_test_true, y_pred),
+        'Precision': precision_score(y_test_true, y_pred, zero_division=0),
+        'Recall': recall_score(y_test_true, y_pred, zero_division=0),
+        'F1-Score': f1_score(y_test_true, y_pred, zero_division=0),
+        'AUC-ROC': roc_auc_score(y_test_true, y_prob) if len(np.unique(y_test_true)) > 1 else 0.5
     }
     
+    # Per-category metrics
+    per_category_metrics = {}
+    test_anchor_labels = X_anchor_labels[idx_test]
+    unique_labels = np.unique(test_anchor_labels)
+    for label in unique_labels:
+        mask = test_anchor_labels == label
+        if np.sum(mask) > 0:
+            y_true_cat = y_test_true[mask]
+            y_pred_cat = y_pred[mask]
+            y_prob_cat = y_prob[mask]
+            
+            cat_metrics = {
+                'Accuracy': accuracy_score(y_true_cat, y_pred_cat),
+                'Precision': precision_score(y_true_cat, y_pred_cat, zero_division=0),
+                'Recall': recall_score(y_true_cat, y_pred_cat, zero_division=0),
+                'F1-Score': f1_score(y_true_cat, y_pred_cat, zero_division=0),
+                'count': int(np.sum(mask))
+            }
+            if len(np.unique(y_true_cat)) > 1:
+                cat_metrics['AUC-ROC'] = roc_auc_score(y_true_cat, y_prob_cat)
+            else:
+                cat_metrics['AUC-ROC'] = 0.5
+            per_category_metrics[str(label)] = cat_metrics
+
     actual_epochs = len(model.history_['train_loss']) if hasattr(model, 'history_') else 0
-    return metrics, actual_epochs
+    return metrics, actual_epochs, per_category_metrics
 
 def main():
-    parser = argparse.ArgumentParser(description="Unified Experiment Runner")
+    parser = argparse.ArgumentParser(description=\"Unified Experiment Runner\")
     # Core Config
-    parser.add_argument("--input", nargs="+", required=True, help="Input dataset path(s).")
-    parser.add_argument("--sep", default=";", help="CSV separator.")
-    parser.add_argument("--mode", choices=["joint", "baseline"], default="joint", help="Experiment mode.")
-    parser.add_argument("--include", nargs="+", default=["st"], help="Components to include: st, rotate, q2b, metrics, instances, mgr.")
+    parser.add_argument(\"--input\", nargs=\"+\", required=True, help=\"Input dataset path(s).\")
+    parser.add_argument(\"--sep\", default=\";\", help=\"CSV separator.\")
+    parser.add_argument(\"--mode\", choices=[\"joint\", \"baseline\"], default=\"joint\", help=\"Experiment mode.\")
+    parser.add_argument(\"--include\", nargs=\"+\", default=[\"st\"], help=\"Components to include: st, rotate, q2b, metrics, instances, mgr.\")
     
     # Hyperparameters (Supports multiple values for Grid Search)
-    parser.add_argument("--lr", nargs="+", type=float, default=[2e-5], help="Learning rate(s).")
-    parser.add_argument("--batch_size", nargs="+", type=int, default=[16], help="Batch size(s).")
-    parser.add_argument("--test_size", nargs="+", type=float, default=[0.8], help="Test size(s).")
-    parser.add_argument("--kge_learned_dim", nargs="+", type=int, default=[128], help="KGE learned dimension(s).")
-    parser.add_argument("--st_learned_dim", type=int, default=None, help="ST learned dimension (None means no projection).")
-    parser.add_argument("--metric_dim", type=int, default=16, help="Metrics learned dimension.")
-    parser.add_argument("--patience", nargs="+", type=int, default=[20], help="Early stopping patience(s).")
-    parser.add_argument("--include_configs", nargs="+", help="Comma-separated include configurations (e.g. 'st,metrics' 'st,rotate').")
+    parser.add_argument(\"--lr\", nargs=\"+\", type=float, default=[2e-5], help=\"Learning rate(s).\")
+    parser.add_argument(\"--batch_size\", nargs=\"+\", type=int, default=[16], help=\"Batch size(s).\")
+    parser.add_argument(\"--test_size\", nargs=\"+\", type=float, default=[0.8], help=\"Test size(s).\")
+    parser.add_argument(\"--kge_learned_dim\", nargs=\"+\", type=int, default=[128], help=\"KGE learned dimension(s).\")
+    parser.add_argument(\"--st_learned_dim\", type=int, default=None, help=\"ST learned dimension (None means no projection).\")
+    parser.add_argument(\"--metric_dim\", type=int, default=16, help=\"Metrics learned dimension.\")
+    parser.add_argument(\"--patience\", nargs=\"+\", type=int, default=[20], help=\"Early stopping patience(s).\")
+    parser.add_argument(\"--include_configs\", nargs=\"+\", help=\"Comma-separated include configurations (e.g. 'st,metrics' 'st,rotate').\")
     
     # Fixed Config
-    parser.add_argument("--epochs", type=int, default=100, help="Max epochs.")
-    parser.add_argument("--runs", type=int, default=1, help="Number of runs per configuration.")
-    parser.add_argument("--use_lr_scheduler", action="store_true", help="Enable LR scheduler.")
+    parser.add_argument(\"--epochs\", type=int, default=100, help=\"Max epochs.\")
+    parser.add_argument(\"--runs\", type=int, default=1, help=\"Number of runs per configuration.\")
+    parser.add_argument(\"--use_lr_scheduler\", action=\"store_true\", help=\"Enable LR scheduler.\")
     
     # Paths & Dictionaries
-    parser.add_argument("--checkpoint", help="KGE model checkpoint.")
-    parser.add_argument("--entities_dict", default="kge/data/custom_dataset/entities.dict", help="Path to entities.dict")
-    parser.add_argument("--relations_dict", default="kge/data/custom_dataset/relations.dict", help="Path to relations.dict")
-    parser.add_argument("--kge_mode", default="average", help="Q2B mode (average, labelled, etc.)")
-    parser.add_argument("--kge_hidden_dim", type=int, default=192, help="KGE hidden dimension.")
+    parser.add_argument(\"--checkpoint\", help=\"KGE model checkpoint.\")
+    parser.add_argument(\"--entities_dict\", default=\"kge/data/custom_dataset/entities.dict\", help=\"Path to entities.dict\")
+    parser.add_argument(\"--relations_dict\", default=\"kge/data/custom_dataset/relations.dict\", help=\"Path to relations.dict\")
+    parser.add_argument(\"--kge_mode\", default=\"average\", help=\"Q2B mode (average, labelled, etc.)\")
+    parser.add_argument(\"--kge_hidden_dim\", type=int, default=192, help=\"KGE hidden dimension.\")
     
     # Output
-    parser.add_argument("--output_report", default="reports/experiment_results.csv", help="CSV report path.")
-    parser.add_argument("--log_file", default="reports/experiment_log.txt", help="Detailed log path.")
+    parser.add_argument(\"--output_report\", default=\"reports/experiment_results.csv\", help=\"CSV report path.\")
+    parser.add_argument(\"--log_file\", default=\"reports/experiment_log.txt\", help=\"Detailed log path.\")
 
     args = parser.parse_args()
 
     # Generate Grid
-    include_options = [args.include_configs] if args.include_configs else [",".join(args.include)]
+    include_options = [args.include_configs] if args.include_configs else [\",\".join(args.include)]
     if args.include_configs:
         include_options = args.include_configs
 
@@ -203,7 +257,7 @@ def main():
     keys, values = zip(*grid_params.items())
     grid = [dict(zip(keys, v)) for v in itertools.product(*values)]
     
-    print(f"Starting {len(grid) * args.runs} experiments...")
+    print(f\"Starting {len(grid) * args.runs} experiments...\")
     
     all_results = []
     
@@ -212,20 +266,21 @@ def main():
         current_args = argparse.Namespace(**vars(args))
         for k, v in config.items():
             if k == 'include_str':
-                current_args.include = v.split(",")
+                current_args.include = v.split(\",\")
             else:
                 setattr(current_args, k, v)
             
-        print(f"\nConfig: {config} | Include: {current_args.include}")
+        print(f\"\\nConfig: {config} | Include: {current_args.include}\")
         
         run_metrics = []
+        run_cat_metrics = []
         start_time = time.time()
         
         for run_id in range(1, args.runs + 1):
-            print(f"  Run {run_id}/{args.runs}...")
+            print(f\"  Run {run_id}/{args.runs}...\")
             try:
-                if args.mode == "joint":
-                    metrics, epochs = run_joint_learning_task(current_args, config['input'], run_id)
+                if args.mode == \"joint\":
+                    metrics, epochs, cat_metrics = run_joint_learning_task(current_args, config['input'], run_id)
                 else:
                     # Baseline logic
                     df = pd.read_csv(config['input'], sep=args.sep)
@@ -236,17 +291,18 @@ def main():
                     y = df['tag'].values[valid_indices]
                     scaler = StandardScaler()
                     X_scaled = scaler.fit_transform(X)
-                    # For simplicity in unified runner, we just run Wide&Deep if in baseline mode
-                    # or extend to loop through core.models if needed.
                     from src.architecture.wrappers.wide_deep_wrapper import WideDeepWrapper
-                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), "WideDeep", WideDeepWrapper())
+                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), \"WideDeep\", WideDeepWrapper())
                     metrics = {k: v for k, v in res.items() if k in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']}
                     epochs = 0
+                    cat_metrics = {}
                 
                 metrics['epochs'] = epochs
                 run_metrics.append(metrics)
+                if cat_metrics:
+                    run_cat_metrics.append(cat_metrics)
             except Exception as e:
-                print(f"    [ERROR] Run {run_id} failed: {e}")
+                print(f\"    [ERROR] Run {run_id} failed: {e}\")
                 import traceback
                 traceback.print_exc()
 
@@ -254,9 +310,9 @@ def main():
             elapsed = (time.time() - start_time) / len(run_metrics)
             # Aggregate
             agg_row = {
-                'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'Timestamp': datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\"),
                 'Dataset': os.path.basename(config['input']),
-                'Include': "+".join(current_args.include),
+                'Include': \"+\".join(current_args.include),
                 'LR': config['lr'],
                 'BatchSize': config['batch_size'],
                 'TestSize': config['test_size'],
@@ -272,15 +328,29 @@ def main():
             
             all_results.append(agg_row)
             
+            # Category aggregation
+            if run_cat_metrics:
+                all_cats = set()
+                for rm in run_cat_metrics: all_cats.update(rm.keys())
+                for cat in all_cats:
+                    cat_row = agg_row.copy()
+                    cat_row['Category'] = cat
+                    for m in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
+                        vals = [rm[cat][m] for rm in run_cat_metrics if cat in rm]
+                        if vals:
+                            cat_row[f'Avg_{m}'] = np.mean(vals)
+                            cat_row[f'Max_{m}'] = np.max(vals)
+                    all_results.append(cat_row)
+            
             # Log to file
-            with open(args.log_file, "a") as f:
-                f.write(f"{agg_row}\n")
+            with open(args.log_file, \"a\") as f:
+                f.write(f\"{agg_row}\\n\")
 
     if all_results:
         os.makedirs(os.path.dirname(args.output_report), exist_ok=True)
         report_df = pd.DataFrame(all_results)
         report_df.to_csv(args.output_report, index=False)
-        print(f"\nDone! Report saved to {args.output_report}")
+        print(f\"\\nDone! Report saved to {args.output_report}\")
 
-if __name__ == "__main__":
+if __name__ == \"__main__\":
     main()

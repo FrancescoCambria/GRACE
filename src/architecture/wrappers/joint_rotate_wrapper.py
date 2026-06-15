@@ -99,7 +99,7 @@ class JointSTRotatEModel(nn.Module):
         return self.wdl_model(combined)
 
 class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
-    def __init__(self, use_st=True, st_model_name='all-MiniLM-L6-v2', st_learned_dim=None, rotate_hidden_dim=192, rotate_learned_dim=64, use_metrics=False, metric_dim=16, entities_dict_path=None, checkpoint_path=None, dnn_hidden_units=(128, 128), epochs=5, batch_size=16, learning_rate=1e-5, device=None, neo4j_env_path='/home/cambria/MineGraphRule/GRAM/.env', early_stopping_patience=10, use_lr_scheduler=False, use_instances=False, cache_path='kge/pattern_embeddings_cache.pkl'):
+    def __init__(self, use_st=True, st_model_name='all-MiniLM-L6-v2', st_learned_dim=None, rotate_hidden_dim=192, rotate_learned_dim=64, use_metrics=False, metric_dim=16, entities_dict_path=None, checkpoint_path=None, dnn_hidden_units=(128, 128), epochs=5, batch_size=16, learning_rate=1e-5, device=None, neo4j_env_path='/home/cambria/gram3/ClassificationforMineGraphRule/.env', early_stopping_patience=10, use_lr_scheduler=False, use_instances=False, cache_path='kge/pattern_embeddings_cache.pkl'):
         self.use_metrics = use_metrics
         self.metric_dim = metric_dim
         self.use_st = use_st
@@ -193,11 +193,15 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
             # Neo4j Query Construction
             match_clause = "MATCH p="
             node_clauses = []
+            where_clauses = []
             for j, label in enumerate(labels):
                 if self.use_instances and j == len(labels) - 1 and target_name:
-                    # Filter by name on the LAST node
-                    safe_name = target_name.replace("'", "\\'")
-                    node_clauses.append(f"(n{j}:{label} {{name: '{safe_name}'}})")
+                    if target_name.isdigit():
+                        node_clauses.append(f"(n{j}:{label})")
+                        where_clauses.append(f"id(n{j}) = {target_name}")
+                    else:
+                        safe_name = target_name.replace("'", "\\'")
+                        node_clauses.append(f"(n{j}:{label} {{name: '{safe_name}'}})")
                 else:
                     node_clauses.append(f"(n{j}:{label})")
             
@@ -205,8 +209,10 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
                 match_clause += node_clauses[j] + f"-[:{rels[j]}]->"
             match_clause += node_clauses[-1]
             
-            # Query all instances (no LIMIT)
-            query = f"{match_clause} RETURN p"
+            query = f"{match_clause}"
+            if where_clauses:
+                query += " WHERE " + " AND ".join(where_clauses)
+            query += " RETURN p LIMIT 50"
             
             instance_embeddings = []
             try:
@@ -216,9 +222,15 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
                     nodes = list(path.nodes)
                     node_vectors = []
                     for node in nodes:
-                        node_name = node.get("name")
-                        if node_name in self.entity_dict:
-                            node_vectors.append(self.entity_emb_matrix[self.entity_dict[node_name]])
+                        potential_keys = []
+                        if "name" in node: potential_keys.append(node["name"])
+                        if "title" in node: potential_keys.append(node["title"])
+                        potential_keys.append(str(node.id))
+                        
+                        for key in potential_keys:
+                            if key in self.entity_dict:
+                                node_vectors.append(self.entity_emb_matrix[self.entity_dict[key]])
+                                break
                     
                     if node_vectors:
                         # Average embeddings WITHIN this path instance
@@ -243,7 +255,12 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         return final_emb
 
     def _prepare_data(self, X_body, X_body_names, X_head, X_head_names, anchor_labels):
-        load_dotenv(self.neo4j_env_path)
+        if os.path.exists(self.neo4j_env_path):
+            load_dotenv(self.neo4j_env_path)
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+            load_dotenv(os.path.join(base_dir, '.env'))
+            
         uri = os.getenv('NEO4J_URI')
         user = os.getenv('NEO4J_USER')
         pw = os.getenv('NEO4J_PASSWORD')
@@ -254,7 +271,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         # Track if we actually performed any NEW queries
         initial_cache_size = len(self.pattern_cache)
 
-        print(f"Connecting to Neo4j to fetch all pattern instances...")
+        print(f"Connecting to Neo4j to fetch pattern instances...")
         try:
             driver = GraphDatabase.driver(uri, auth=(user, pw))
             # Test connection
@@ -314,7 +331,18 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
             scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
         
         indices = np.arange(len(X_text))
-        it, iv = train_test_split(indices, test_size=validation_split, random_state=42, stratify=y)
+        
+        actual_val_split = validation_split
+        if len(indices) < 5:
+            actual_val_split = 0.2
+            
+        try:
+            it, iv = train_test_split(indices, test_size=actual_val_split, random_state=42, stratify=y)
+        except ValueError:
+            it, iv = train_test_split(indices, test_size=actual_val_split, random_state=42)
+            
+        if len(it) == 0:
+            it, iv = indices[:1], indices[1:]
         
         y_t = torch.tensor(y[it], dtype=torch.float32).to(self.device)
         y_v = torch.tensor(y[iv], dtype=torch.float32).to(self.device)
