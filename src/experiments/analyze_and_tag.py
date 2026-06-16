@@ -213,10 +213,33 @@ def evaluate_all_criteria(row):
     elif criteria['Law_Dept']:
         reasoning, logic = "Departmental Attribution (Predicting responsible department)", "Dept Prediction"
 
-    criteria['Expert_Reasoning'] = reasoning
-    criteria['Tag_Logic_Derived'] = logic
+    # Prefix criteria for downstream tools
+    final_results = {f"Criteria_{k}": v for k, v in criteria.items()}
+    final_results['Expert_Reasoning'] = reasoning
+    final_results['Tag_Logic_Derived'] = logic
     
-    return criteria
+    return final_results
+
+# Define Aggregate Criteria mapping
+AGGREGATE_CRITERIA = {
+    'Criteria_Basic4': [
+        'Criteria_Macro_RockMetal', 
+        'Criteria_Motif_Artist_Genre_3plus', 
+        'Criteria_Macro_UrbanDance', 
+        'Criteria_Motif_User_Playlist_2plus'
+    ],
+    'Criteria_BasicLaw': [
+        'Criteria_Law_Cites', 
+        'Criteria_Law_Dept'
+    ],
+    'Criteria_ComplexLaw': [
+        'Criteria_Law_Strategic_Citation', 
+        'Criteria_Law_Strategic_Attribution', 
+        'Criteria_Law_Policy_Target', 
+        'Criteria_Law_Regional_Policy', 
+        'Criteria_Law_Strategic_Complexity'
+    ]
+}
 
 def main():
     parser = argparse.ArgumentParser(description="Unified script for analyzing and tagging rule datasets.")
@@ -250,6 +273,12 @@ def main():
         else:
             return
 
+    # Drop existing criteria columns to avoid duplication
+    existing_crit_cols = [c for c in df.columns if c.startswith('Criteria_')]
+    if existing_crit_cols:
+        print(f"Removing existing criteria columns: {existing_crit_cols}")
+        df = df.drop(columns=existing_crit_cols)
+
     # 2. Evaluate Built-in Criteria
     print("Evaluating built-in criteria...")
     criteria_results = []
@@ -275,19 +304,29 @@ def main():
             print("Warning: None of the search columns (Body, Head, etc.) found in input.")
 
     # 4. Merge criteria into main DF
-    if args.all_criteria or args.criteria:
+    requested_criteria = []
+    if args.criteria:
+        for c in args.criteria:
+            full_c = c if c.startswith('Criteria_') else f"Criteria_{c}"
+            requested_criteria.append(full_c)
+            # Expand aggregate criteria
+            if full_c in AGGREGATE_CRITERIA:
+                requested_criteria.extend(AGGREGATE_CRITERIA[full_c])
+        requested_criteria = list(set(requested_criteria)) # Deduplicate
+
+    if args.all_criteria or requested_criteria:
         # Determine which criteria columns to actually add
         cols_to_add = []
         if args.all_criteria:
             cols_to_add = list(crit_df.columns)
-        elif args.criteria:
-            cols_to_add = [c for c in args.criteria if c in crit_df.columns]
+        else:
+            cols_to_add = [c for c in requested_criteria if c in crit_df.columns]
             
         for col in cols_to_add:
             df[col] = crit_df[col].values
             
     # Always add reasoning and derived logic if requested
-    if args.all_criteria:
+    if args.all_criteria or args.criteria:
         if 'Expert_Reasoning' not in df.columns: df['Expert_Reasoning'] = crit_df['Expert_Reasoning'].values
         if 'Tag_Logic' not in df.columns: df['Tag_Logic'] = crit_df['Tag_Logic_Derived'].values
 
@@ -296,11 +335,14 @@ def main():
         print(f"Determining 'tag' based on: {args.criteria}")
         tag_mask = pd.Series([False] * len(df))
         
-        for crit in args.criteria:
+        # Original criteria from args (expanded)
+        base_criteria_with_prefix = [c if c.startswith('Criteria_') else f"Criteria_{c}" for c in args.criteria]
+        
+        for crit in base_criteria_with_prefix:
             if crit in crit_df.columns:
                 tag_mask |= (crit_df[crit] == 1)
-            elif f"Search_{crit}" in df.columns:
-                tag_mask |= (df[f"Search_{crit}"] == 1)
+            elif crit.replace('Criteria_', 'Search_') in df.columns:
+                tag_mask |= (df[crit.replace('Criteria_', 'Search_')] == 1)
             else:
                 print(f"Warning: Criterion '{crit}' not found.")
         
@@ -310,15 +352,33 @@ def main():
         def get_logic_info(row_idx):
             active = []
             reason = "Standard"
-            for crit in args.criteria:
+            
+            for crit in base_criteria_with_prefix:
+                is_hit = False
                 if crit in crit_df.columns and crit_df.iloc[row_idx][crit] == 1:
-                    active.append(crit)
-                    # Use the first matching reasoning as a representative one
-                    if reason == "Standard":
+                    is_hit = True
+                elif crit.replace('Criteria_', 'Search_') in df.columns and df.iloc[row_idx][crit.replace('Criteria_', 'Search_')] == 1:
+                    is_hit = True
+                
+                if is_hit:
+                    # Expansion for aggregates in Tag_Logic
+                    if crit in AGGREGATE_CRITERIA:
+                        components = []
+                        for comp in AGGREGATE_CRITERIA[crit]:
+                            if comp in crit_df.columns and crit_df.iloc[row_idx][comp] == 1:
+                                components.append(comp.replace('Criteria_', ''))
+                        if components:
+                            active.extend(components)
+                        else:
+                            active.append(crit.replace('Criteria_', ''))
+                    else:
+                        active.append(crit.replace('Criteria_', ''))
+                    
+                    # Use reasoning
+                    if reason == "Standard" and crit in crit_df.columns:
                         reason = crit_df.iloc[row_idx]['Expert_Reasoning']
-                elif f"Search_{crit}" in df.columns and df.iloc[row_idx][f"Search_{crit}"] == 1:
-                    active.append(f"Search_{crit}")
-            return " + ".join(active) if active else "Standard", reason
+            
+            return " + ".join(sorted(list(set(active)))) if active else "Standard", reason
         
         logics_reasons = [get_logic_info(i) for i in range(len(df))]
         df['Tag_Logic'] = [lr[0] for lr in logics_reasons]

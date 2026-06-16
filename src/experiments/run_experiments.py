@@ -200,55 +200,78 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
                 cat_metrics['AUC-ROC'] = 0.5
             per_category_metrics[str(label)] = cat_metrics
 
+    # Per-criteria metrics
+    per_criteria_metrics = {}
+    criteria_cols = [c for c in df.columns if c.startswith('Criteria_')]
+    for col in criteria_cols:
+        crit_values = df.iloc[idx_test][col].values
+        mask = crit_values == 1
+        if np.sum(mask) > 0:
+            y_true_crit = y_test_true[mask]
+            y_pred_crit = y_pred[mask]
+            per_criteria_metrics[col] = {
+                'Accuracy': accuracy_score(y_true_crit, y_pred_crit),
+                'count': int(np.sum(mask))
+            }
+
     actual_epochs = len(model.history_['train_loss']) if hasattr(model, 'history_') else 0
-    return metrics, actual_epochs, per_category_metrics
+    return metrics, actual_epochs, per_category_metrics, per_criteria_metrics
 
 def main():
-    parser = argparse.ArgumentParser(description=\"Unified Experiment Runner\")
+    parser = argparse.ArgumentParser(description="Unified Experiment Runner")
     # Core Config
-    parser.add_argument(\"--input\", nargs=\"+\", required=True, help=\"Input dataset path(s).\")
-    parser.add_argument(\"--sep\", default=\";\", help=\"CSV separator.\")
-    parser.add_argument(\"--mode\", choices=[\"joint\", \"baseline\"], default=\"joint\", help=\"Experiment mode.\")
-    parser.add_argument(\"--include\", nargs=\"+\", default=[\"st\"], help=\"Components to include: st, rotate, q2b, metrics, instances, mgr.\")
+    parser.add_argument("--input", nargs="+", required=True, help="Input dataset path(s).")
+    parser.add_argument("--sep", default=";", help="CSV separator.")
+    parser.add_argument("--mode", choices=["joint", "baseline"], default="joint", help="Experiment mode.")
+    parser.add_argument("--include", nargs="+", default=["st"], help="Components to include: st, rotate, q2b, metrics, instances, mgr.")
     
     # Hyperparameters (Supports multiple values for Grid Search)
-    parser.add_argument(\"--lr\", nargs=\"+\", type=float, default=[2e-5], help=\"Learning rate(s).\")
-    parser.add_argument(\"--batch_size\", nargs=\"+\", type=int, default=[16], help=\"Batch size(s).\")
-    parser.add_argument(\"--test_size\", nargs=\"+\", type=float, default=[0.8], help=\"Test size(s).\")
-    parser.add_argument(\"--kge_learned_dim\", nargs=\"+\", type=int, default=[128], help=\"KGE learned dimension(s).\")
-    parser.add_argument(\"--st_learned_dim\", type=int, default=None, help=\"ST learned dimension (None means no projection).\")
-    parser.add_argument(\"--metric_dim\", type=int, default=16, help=\"Metrics learned dimension.\")
-    parser.add_argument(\"--patience\", nargs=\"+\", type=int, default=[20], help=\"Early stopping patience(s).\")
-    parser.add_argument(\"--include_configs\", nargs=\"+\", help=\"Comma-separated include configurations (e.g. 'st,metrics' 'st,rotate').\")
+    parser.add_argument("--lr", nargs="+", type=float, default=[2e-5], help="Learning rate(s).")
+    parser.add_argument("--batch_size", nargs="+", type=int, default=[16], help="Batch size(s).")
+    parser.add_argument("--test_size", nargs="+", type=float, default=[0.8], help="Test size(s).")
+    parser.add_argument("--kge_learned_dim", nargs="+", type=int, default=[128], help="KGE learned dimension(s).")
+    parser.add_argument("--st_learned_dim", type=int, default=256, help="ST learned dimension (None means no projection).")
+    parser.add_argument("--metric_dim", type=int, default=256, help="Metrics learned dimension.")
+    parser.add_argument("--patience", nargs="+", type=int, default=[20], help="Early stopping patience(s).")
+    parser.add_argument("--include_configs", nargs="+", help="Comma-separated include configurations (e.g. 'st,metrics' 'st,rotate').")
     
     # Fixed Config
-    parser.add_argument(\"--epochs\", type=int, default=100, help=\"Max epochs.\")
-    parser.add_argument(\"--runs\", type=int, default=1, help=\"Number of runs per configuration.\")
-    parser.add_argument(\"--use_lr_scheduler\", action=\"store_true\", help=\"Enable LR scheduler.\")
+    parser.add_argument("--epochs", type=int, default=100, help="Max epochs.")
+    parser.add_argument("--runs", type=int, default=1, help="Number of runs per configuration.")
+    parser.add_argument("--use_lr_scheduler", action="store_true", help="Enable LR scheduler.")
     
     # Paths & Dictionaries
-    parser.add_argument(\"--checkpoint\", help=\"KGE model checkpoint.\")
-    parser.add_argument(\"--entities_dict\", default=\"kge/data/custom_dataset/entities.dict\", help=\"Path to entities.dict\")
-    parser.add_argument(\"--relations_dict\", default=\"kge/data/custom_dataset/relations.dict\", help=\"Path to relations.dict\")
-    parser.add_argument(\"--kge_mode\", default=\"average\", help=\"Q2B mode (average, labelled, etc.)\")
-    parser.add_argument(\"--kge_hidden_dim\", type=int, default=192, help=\"KGE hidden dimension.\")
+    parser.add_argument("--checkpoint", help="KGE model checkpoint.")
+    parser.add_argument("--entities_dict", default="kge/data/custom_dataset/entities.dict", help="Path to entities.dict")
+    parser.add_argument("--relations_dict", default="kge/data/custom_dataset/relations.dict", help="Path to relations.dict")
+    parser.add_argument("--kge_mode", default="average", help="Q2B mode (average, labelled, etc.)")
+    parser.add_argument("--kge_hidden_dim", type=int, default=192, help="KGE hidden dimension.")
     
     # Output
-    parser.add_argument(\"--output_report\", default=\"reports/experiment_results.csv\", help=\"CSV report path.\")
-    parser.add_argument(\"--log_file\", default=\"reports/experiment_log.txt\", help=\"Detailed log path.\")
+    parser.add_argument("--output_report", default="reports/experiment_results.csv", help="CSV report path.")
+    parser.add_argument("--log_file", default="reports/experiment_log.txt", help="Detailed log path.")
 
     args = parser.parse_args()
 
+    # Output with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_report = args.output_report.replace(".csv", f"_{timestamp}.csv")
+    log_file = args.log_file.replace(".txt", f"_{timestamp}.txt")
+
     # Generate Grid
-    include_options = [args.include_configs] if args.include_configs else [\",\".join(args.include)]
+    include_options = [args.include_configs] if args.include_configs else [",".join(args.include)]
     if args.include_configs:
         include_options = args.include_configs
 
     grid_params = {
+        'runs': args.runs,
         'lr': args.lr,
+        'lr_scheduler': args.use_lr_scheduler,
         'batch_size': args.batch_size,
         'test_size': args.test_size,
         'kge_learned_dim': args.kge_learned_dim,
+        'st_learned_dim': args.st_learned_dim,
+        'metric_dim': args.metric_dim,
         'patience': args.patience,
         'input': args.input,
         'include_str': include_options
@@ -257,7 +280,7 @@ def main():
     keys, values = zip(*grid_params.items())
     grid = [dict(zip(keys, v)) for v in itertools.product(*values)]
     
-    print(f\"Starting {len(grid) * args.runs} experiments...\")
+    print(f"Starting {len(grid) * args.runs} experiments...")
     
     all_results = []
     
@@ -266,21 +289,22 @@ def main():
         current_args = argparse.Namespace(**vars(args))
         for k, v in config.items():
             if k == 'include_str':
-                current_args.include = v.split(\",\")
+                current_args.include = v.split(",")
             else:
                 setattr(current_args, k, v)
             
-        print(f\"\\nConfig: {config} | Include: {current_args.include}\")
+        print(f"\nConfig: {config} | Include: {current_args.include}")
         
         run_metrics = []
         run_cat_metrics = []
+        run_crit_metrics = []
         start_time = time.time()
         
         for run_id in range(1, args.runs + 1):
-            print(f\"  Run {run_id}/{args.runs}...\")
+            print(f"  Run {run_id}/{args.runs}...")
             try:
-                if args.mode == \"joint\":
-                    metrics, epochs, cat_metrics = run_joint_learning_task(current_args, config['input'], run_id)
+                if args.mode == "joint":
+                    metrics, epochs, cat_metrics, crit_metrics = run_joint_learning_task(current_args, config['input'], run_id)
                 else:
                     # Baseline logic
                     df = pd.read_csv(config['input'], sep=args.sep)
@@ -292,17 +316,20 @@ def main():
                     scaler = StandardScaler()
                     X_scaled = scaler.fit_transform(X)
                     from src.architecture.wrappers.wide_deep_wrapper import WideDeepWrapper
-                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), \"WideDeep\", WideDeepWrapper())
+                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), "WideDeep", WideDeepWrapper())
                     metrics = {k: v for k, v in res.items() if k in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']}
                     epochs = 0
                     cat_metrics = {}
+                    crit_metrics = {}
                 
                 metrics['epochs'] = epochs
                 run_metrics.append(metrics)
                 if cat_metrics:
                     run_cat_metrics.append(cat_metrics)
+                if crit_metrics:
+                    run_crit_metrics.append(crit_metrics)
             except Exception as e:
-                print(f\"    [ERROR] Run {run_id} failed: {e}\")
+                print(f"    [ERROR] Run {run_id} failed: {e}")
                 import traceback
                 traceback.print_exc()
 
@@ -310,16 +337,16 @@ def main():
             elapsed = (time.time() - start_time) / len(run_metrics)
             # Aggregate
             agg_row = {
-                'Timestamp': datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\"),
+                'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'Dataset': os.path.basename(config['input']),
-                'Include': \"+\".join(current_args.include),
-                'LR': config['lr'],
-                'BatchSize': config['batch_size'],
-                'TestSize': config['test_size'],
-                'Patience': config['patience'],
-                'KG_Dim': config['kge_learned_dim'],
-                'AvgTime': elapsed
+                'Include': "+".join(current_args.include),
+                'AvgTime': elapsed,
+                'Type': 'Overall'
             }
+            # Add all other parameters from current_args
+            for key, value in vars(current_args).items():
+                if key not in ['input', 'include', 'output_report', 'log_file', 'sep']:
+                    agg_row[key] = value
             
             for m in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
                 vals = [rm[m] for rm in run_metrics]
@@ -334,6 +361,7 @@ def main():
                 for rm in run_cat_metrics: all_cats.update(rm.keys())
                 for cat in all_cats:
                     cat_row = agg_row.copy()
+                    cat_row['Type'] = 'Category'
                     cat_row['Category'] = cat
                     for m in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
                         vals = [rm[cat][m] for rm in run_cat_metrics if cat in rm]
@@ -342,15 +370,30 @@ def main():
                             cat_row[f'Max_{m}'] = np.max(vals)
                     all_results.append(cat_row)
             
+            # Criteria aggregation
+            if run_crit_metrics:
+                all_crits = set()
+                for rm in run_crit_metrics: all_crits.update(rm.keys())
+                for crit in all_crits:
+                    crit_row = agg_row.copy()
+                    crit_row['Type'] = 'Criteria'
+                    crit_row['Category'] = crit
+                    for m in ['Accuracy']:
+                        vals = [rm[crit][m] for rm in run_crit_metrics if crit in rm]
+                        if vals:
+                            crit_row[f'Avg_{m}'] = np.mean(vals)
+                            crit_row[f'Max_{m}'] = np.max(vals)
+                    all_results.append(crit_row)
+            
             # Log to file
-            with open(args.log_file, \"a\") as f:
-                f.write(f\"{agg_row}\\n\")
+            with open(log_file, "a") as f:
+                f.write(f"{agg_row}\n")
 
     if all_results:
-        os.makedirs(os.path.dirname(args.output_report), exist_ok=True)
+        os.makedirs(os.path.dirname(output_report), exist_ok=True)
         report_df = pd.DataFrame(all_results)
-        report_df.to_csv(args.output_report, index=False)
-        print(f\"\\nDone! Report saved to {args.output_report}\")
+        report_df.to_csv(output_report, index=False)
+        print(f"\nDone! Report saved to {output_report}")
 
-if __name__ == \"__main__\":
+if __name__ == "__main__":
     main()
