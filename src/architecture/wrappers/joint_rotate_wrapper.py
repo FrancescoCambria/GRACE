@@ -80,8 +80,11 @@ class JointSTRotatEModel(nn.Module):
         head_emb = self.rotate_encoder(head_rotate_embs)
         
         if self.use_st:
+            # Ensure texts is a list of strings for SentenceTransformer
+            if isinstance(texts, np.ndarray):
+                texts = texts.tolist()
             features = self.st_model.tokenize(texts)
-            features = {k: v.to(self.device) for k, v in features.items()}
+            features = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v for k, v in features.items()}
             st_emb = self.st_projection(self.st_model(features)['sentence_embedding'])
             parts = [st_emb, body_emb, head_emb]
         else:
@@ -273,7 +276,9 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
 
         print(f"Connecting to Neo4j to fetch pattern instances...")
         try:
-            driver = GraphDatabase.driver(uri, auth=(user, pw))
+            from neo4j import basic_auth
+            auth = basic_auth(user or "", pw or "")
+            driver = GraphDatabase.driver(uri, auth=auth)
             # Test connection
             driver.verify_connectivity()
             
@@ -328,7 +333,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         # Adaptive LR Scheduler
         scheduler = None
         if self.use_lr_scheduler:
-            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=20)
         
         indices = np.arange(len(X_text))
         

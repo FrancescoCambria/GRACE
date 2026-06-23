@@ -85,8 +85,7 @@ def evaluate_all_criteria(row):
         'activity_lifestyle': ['gym', 'workout', 'fitness', 'running', 'hiking', 'camping', 'study', 'reading', 'focus', 'chill', 'lofi', 'cocktail', 'dinner', 'party', 'driving', 'road trip']
     }
     
-    macro_hits = {k: any(g in all_names for g in v) for k, v in macro_groups.items()}
-    
+    macro_hits = {k: any(g in all_names for g in v) for k, v in macro_groups.items()}    
     # Law specific pre-computations
     has_citation = "cites" in all_struct
     
@@ -105,6 +104,10 @@ def evaluate_all_criteria(row):
     
     regional_keywords = ["sicilia", "sardegna", "calabria", "puglia"]
     has_regional_scope = any(k in all_names for k in regional_keywords)
+    
+    has_welfare_social = any(k in all_names for k in ["lavoro", "istruzione", "scuola", "scolastiche", "insegnamenti", "sport", "turismo", "spettacolo", "salute", "sanità", "previdenza", "assistenza", "cultura"])
+    has_production_finance = any(k in all_names for k in ["industria", "artigianato", "finanza"])
+    has_dept = "department" in all_struct
 
     # Motif counting helper
     def count_motif(pattern, text):
@@ -170,6 +173,11 @@ def evaluate_all_criteria(row):
         'Law_Policy_Target': 1 if any(k in head_names for k in ["lavoro", "economia", "riforma", "espropriazione", "fondiaria", "indennizzo", "occupazione", "previdenza", "industria"]) else 0,
         'Law_Regional_Policy': 1 if (has_regional_scope and has_policy_impact) else 0,
         'Law_Strategic_Complexity': 1 if (is_complex_law and has_citation and has_policy_impact) else 0,
+
+        # --- Domain: Law (Custom) ---
+        'Law_Welfare_Social': 1 if has_welfare_social else 0,
+        'Law_Multi_Citation': 1 if (body_struct.count('cites') + head_struct.count('cites')) >= 2 else 0,
+        'Law_Production_Attribution': 1 if (has_production_finance and has_dept) else 0,
     }
     
     # Special Aggregate Criteria
@@ -180,6 +188,21 @@ def evaluate_all_criteria(row):
         criteria['Motif_User_Playlist_2plus']
     ) else 0
 
+    criteria['Structural'] = 1 if (
+        criteria['Struct_Complex'] or 
+        criteria['Struct_Bridge'] or 
+        criteria['Struct_Expert']
+    ) else 0
+
+    criteria['Genre_Specific'] = 1 if (
+        criteria['Crit_Global'] or 
+        criteria['Crit_Heavy_Expert'] or 
+        criteria['Crit_Urban_Complex'] or 
+        criteria['Crit_Traditional_Bridge'] or 
+        criteria['Crit_Wellness_Expert'] or 
+        criteria['Crit_Lifestyle_Complex']
+    ) else 0
+
     criteria['BasicLaw'] = 1 if (criteria['Law_Cites'] or criteria['Law_Dept']) else 0
     criteria['ComplexLaw'] = 1 if (
         criteria['Law_Strategic_Citation'] or 
@@ -187,6 +210,12 @@ def evaluate_all_criteria(row):
         criteria['Law_Policy_Target'] or 
         criteria['Law_Regional_Policy'] or 
         criteria['Law_Strategic_Complexity']
+    ) else 0
+
+    criteria['CustomLaw'] = 1 if (
+        criteria['Law_Welfare_Social'] or 
+        criteria['Law_Multi_Citation'] or 
+        criteria['Law_Production_Attribution']
     ) else 0
     
     # Expert Reasoning & Tag Logic derivation
@@ -196,9 +225,17 @@ def evaluate_all_criteria(row):
     # Spotify logic prioritization for reasoning (if applicable)
     if criteria['Orig_Genre_Crossover']: reasoning, logic = "Genre crossover pattern", "Genre Crossover"
     elif criteria['Orig_Human_Curator']: reasoning, logic = "Human-curated playlist artifact", "Human Curator"
+    elif criteria['Structural']: reasoning, logic = "Structural pattern detected", "Structural"
+    elif criteria['Genre_Specific']: reasoning, logic = "Genre-specific macro pattern detected", "Genre Specific"
     
     # Law logic prioritization
-    if criteria['Law_Strategic_Citation']: 
+    if criteria['Law_Production_Attribution']:
+        reasoning, logic = "Hybrid: Departmental attribution of industrial, craft production, or financial policies", "Production Dept Attribution"
+    elif criteria['Law_Multi_Citation']:
+        reasoning, logic = "Structural: Multiple legislative citations (complex dependencies)", "Multi Citation"
+    elif criteria['Law_Welfare_Social']:
+        reasoning, logic = "Semantic: Public interest and social welfare topic", "Welfare Social"
+    elif criteria['Law_Strategic_Citation']: 
         reasoning, logic = f"Hybrid: Policy-impactful citation", "Strategic Citation"
     elif criteria['Law_Strategic_Attribution']:
         reasoning, logic = f"Functional: Core departmental attribution", "Strategic Attribution"
@@ -219,7 +256,7 @@ def evaluate_all_criteria(row):
     final_results['Tag_Logic_Derived'] = logic
     
     return final_results
-
+ 
 # Define Aggregate Criteria mapping
 AGGREGATE_CRITERIA = {
     'Criteria_Basic4': [
@@ -227,6 +264,19 @@ AGGREGATE_CRITERIA = {
         'Criteria_Motif_Artist_Genre_3plus', 
         'Criteria_Macro_UrbanDance', 
         'Criteria_Motif_User_Playlist_2plus'
+    ],
+    'Criteria_Structural': [
+        'Criteria_Struct_Complex',
+        'Criteria_Struct_Bridge',
+        'Criteria_Struct_Expert'
+    ],
+    'Criteria_Genre_Specific': [
+        'Criteria_Crit_Global',
+        'Criteria_Crit_Heavy_Expert',
+        'Criteria_Crit_Urban_Complex',
+        'Criteria_Crit_Traditional_Bridge',
+        'Criteria_Crit_Wellness_Expert',
+        'Criteria_Crit_Lifestyle_Complex'
     ],
     'Criteria_BasicLaw': [
         'Criteria_Law_Cites', 
@@ -238,9 +288,14 @@ AGGREGATE_CRITERIA = {
         'Criteria_Law_Policy_Target', 
         'Criteria_Law_Regional_Policy', 
         'Criteria_Law_Strategic_Complexity'
+    ],
+    'Criteria_CustomLaw': [
+        'Criteria_Law_Welfare_Social',
+        'Criteria_Law_Multi_Citation',
+        'Criteria_Law_Production_Attribution'
     ]
 }
-
+ 
 def main():
     parser = argparse.ArgumentParser(description="Unified script for analyzing and tagging rule datasets.")
     parser.add_argument("--input", required=True, help="Input CSV file.")

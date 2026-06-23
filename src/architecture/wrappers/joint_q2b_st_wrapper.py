@@ -108,6 +108,9 @@ class JointSTQ2BWDLModel(nn.Module):
         self.wdl_model = WDL(linear_feature_columns=self.feature_columns, dnn_feature_columns=self.feature_columns, dnn_hidden_units=dnn_hidden_units, task='binary', device=device)
         
     def forward(self, texts, body_patterns, head_patterns):
+        # Ensure texts is a list of strings for SentenceTransformer
+        if isinstance(texts, np.ndarray):
+            texts = texts.tolist()
         features = self.st_model.tokenize(texts)
         features = {k: v.to(self.device) for k, v in features.items()}
         st_emb = self.st_projection(self.st_model(features)['sentence_embedding'])

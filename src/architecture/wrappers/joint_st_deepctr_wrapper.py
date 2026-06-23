@@ -58,8 +58,11 @@ class JointSTWDLModel(nn.Module):
         
         if self.use_st:
             # 1. Tokenize texts
+            # Ensure texts is a list of strings for SentenceTransformer
+            if isinstance(texts, np.ndarray):
+                texts = texts.tolist()
             features = self.st_model.tokenize(texts)
-            features = {k: v.to(self.device) for k, v in features.items()}
+            features = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v for k, v in features.items()}
             
             # 2. Extract embeddings (maintaining gradients)
             st_out = self.st_model(features)

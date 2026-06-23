@@ -230,8 +230,8 @@ def main():
     parser.add_argument("--batch_size", nargs="+", type=int, default=[16], help="Batch size(s).")
     parser.add_argument("--test_size", nargs="+", type=float, default=[0.8], help="Test size(s).")
     parser.add_argument("--kge_learned_dim", nargs="+", type=int, default=[128], help="KGE learned dimension(s).")
-    parser.add_argument("--st_learned_dim", type=int, default=256, help="ST learned dimension (None means no projection).")
-    parser.add_argument("--metric_dim", type=int, default=256, help="Metrics learned dimension.")
+    parser.add_argument("--st_learned_dim", nargs="+", type=int, default=[256], help="ST learned dimension (None means no projection).")
+    parser.add_argument("--metric_dim", nargs="+", type=int, default=[256], help="Metrics learned dimension.")
     parser.add_argument("--patience", nargs="+", type=int, default=[20], help="Early stopping patience(s).")
     parser.add_argument("--include_configs", nargs="+", help="Comma-separated include configurations (e.g. 'st,metrics' 'st,rotate').")
     
@@ -242,8 +242,8 @@ def main():
     
     # Paths & Dictionaries
     parser.add_argument("--checkpoint", help="KGE model checkpoint.")
-    parser.add_argument("--entities_dict", default="kge/data/custom_dataset/entities.dict", help="Path to entities.dict")
-    parser.add_argument("--relations_dict", default="kge/data/custom_dataset/relations.dict", help="Path to relations.dict")
+    parser.add_argument("--entities_dict", help="Path to entities.dict")
+    parser.add_argument("--relations_dict", help="Path to relations.dict")
     parser.add_argument("--kge_mode", default="average", help="Q2B mode (average, labelled, etc.)")
     parser.add_argument("--kge_hidden_dim", type=int, default=192, help="KGE hidden dimension.")
     
@@ -251,36 +251,75 @@ def main():
     parser.add_argument("--output_report", default="reports/experiment_results.csv", help="CSV report path.")
     parser.add_argument("--log_file", default="reports/experiment_log.txt", help="Detailed log path.")
 
+    # Dataset-specific port selection
+    parser.add_argument("--dataset", choices=["law", "spotify"], help="Target dataset (determines Memgraph port).")
+    
     args = parser.parse_args()
 
+    # Dataset-specific defaults
+    if args.dataset == "spotify":
+        port = 23008
+        if not args.entities_dict:
+            args.entities_dict = "kge/data/spotify_dataset/entities.dict"
+        if not args.checkpoint:
+            args.checkpoint = "kge/models/spotify_model/checkpoint"
+    elif args.dataset == "law":
+        port = 23006
+        if not args.entities_dict:
+            args.entities_dict = "kge/data/law_dataset/entities.dict"
+        if not args.checkpoint:
+            args.checkpoint = "kge/models/law_model/checkpoint"
+    else:
+        if not args.entities_dict:
+            args.entities_dict = "kge/data/custom_dataset/entities.dict"
+
+    if not args.relations_dict:
+        if args.dataset == "spotify":
+            args.relations_dict = "kge/data/spotify_dataset/relations.dict"
+        elif args.dataset == "law":
+            args.relations_dict = "kge/data/law_dataset/relations.dict"
+        else:
+            args.relations_dict = "kge/data/custom_dataset/relations.dict"
+
+    if port:
+        print(f"Setting Memgraph port to {port} for dataset: {args.dataset}")
+        os.environ["NEO4J_URI"] = f"bolt://localhost:{port}"
+        os.environ["MEMGRAPH_URI"] = f"bolt://localhost:{port}"
+        # Set credentials
+        os.environ["NEO4J_USER"] = "neo4j"
+        os.environ["NEO4J_PASSWORD"] = "mineGraphRule"
+    
     # Output with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_report = args.output_report.replace(".csv", f"_{timestamp}.csv")
     log_file = args.log_file.replace(".txt", f"_{timestamp}.txt")
 
     # Generate Grid
-    include_options = [args.include_configs] if args.include_configs else [",".join(args.include)]
-    if args.include_configs:
-        include_options = args.include_configs
+    include_options = args.include_configs if args.include_configs else [",".join(args.include)]
+
+    # Helper to ensure something is a list
+    def to_list(x):
+        if isinstance(x, (list, tuple)): return x
+        return [x]
 
     grid_params = {
-        'runs': args.runs,
-        'lr': args.lr,
-        'lr_scheduler': args.use_lr_scheduler,
-        'batch_size': args.batch_size,
-        'test_size': args.test_size,
-        'kge_learned_dim': args.kge_learned_dim,
-        'st_learned_dim': args.st_learned_dim,
-        'metric_dim': args.metric_dim,
-        'patience': args.patience,
-        'input': args.input,
-        'include_str': include_options
+        'runs': to_list(args.runs),
+        'lr': to_list(args.lr),
+        'lr_scheduler': to_list(args.use_lr_scheduler),
+        'batch_size': to_list(args.batch_size),
+        'test_size': to_list(args.test_size),
+        'kge_learned_dim': to_list(args.kge_learned_dim),
+        'st_learned_dim': to_list(args.st_learned_dim),
+        'metric_dim': to_list(args.metric_dim),
+        'patience': to_list(args.patience),
+        'input': to_list(args.input),
+        'include_str': to_list(include_options)
     }
     
     keys, values = zip(*grid_params.items())
     grid = [dict(zip(keys, v)) for v in itertools.product(*values)]
     
-    print(f"Starting {len(grid) * args.runs} experiments...")
+    print(f"Starting {len(grid)} configurations with {args.runs} runs each...")
     
     all_results = []
     
@@ -290,6 +329,8 @@ def main():
         for k, v in config.items():
             if k == 'include_str':
                 current_args.include = v.split(",")
+            elif k == 'lr_scheduler':
+                current_args.use_lr_scheduler = v
             else:
                 setattr(current_args, k, v)
             
@@ -300,8 +341,8 @@ def main():
         run_crit_metrics = []
         start_time = time.time()
         
-        for run_id in range(1, args.runs + 1):
-            print(f"  Run {run_id}/{args.runs}...")
+        for run_id in range(1, current_args.runs + 1):
+            print(f"  Run {run_id}/{current_args.runs}...")
             try:
                 if args.mode == "joint":
                     metrics, epochs, cat_metrics, crit_metrics = run_joint_learning_task(current_args, config['input'], run_id)

@@ -100,20 +100,20 @@ def translate_rule(row):
     return f"{subject} {body_text} that are also {head_text} with support {support} and confidence {confidence}"
 
 def extract_mgr_pattern(pattern_str, names_str, anchor_label):
-    \"\"\"
+    """
     Helper function to parse the basic path strings and convert them into 
     MINE GRAPH RULE itemSet syntax with inline properties.
-    \"\"\"
+    """
     if pd.isna(pattern_str) or not pattern_str:
         return ""
 
     # Handle separators
-    if \"; \" in pattern_str:
+    if "; " in pattern_str:
         parts = [p.strip() for p in pattern_str.split(';')]
-        id_sep = \";\"
+        id_sep = ";"
     else:
         parts = [p.strip() for p in pattern_str.split(', ')]
-        id_sep = \",\"
+        id_sep = ","
 
     if isinstance(names_str, str):
         names_list = [n.strip() for n in names_str.split(id_sep)]
@@ -123,7 +123,7 @@ def extract_mgr_pattern(pattern_str, names_str, anchor_label):
     itemsets = []
     
     for i, part in enumerate(parts):
-        name = names_list[i].strip() if i < len(names_list) else \"Unknown\"
+        name = names_list[i].strip() if i < len(names_list) else "Unknown"
         
         # Extract nodes and relationships using regex
         nodes = re.findall(r'\\((.*?)\\)', part)
@@ -133,27 +133,27 @@ def extract_mgr_pattern(pattern_str, names_str, anchor_label):
             continue
             
         # Use the full anchor label as the starting point
-        mgr_path = f\"(:{anchor_label})\"
+        mgr_path = f"(:{anchor_label})"
         for j, rel in enumerate(rels):
             # Clean up relation names just in case they have formatting, dropping directional arrows
             rel_clean = rel.replace(':', '').replace('>', '').replace('<', '') 
             target_node = nodes[j+1]
             
             # If this is the terminal node in the path string, tie the specific name to it inline
-            if j == len(rels) - 1 and name != \"Unknown\":
-                safe_name = name.replace(\"'\", \"\\\\'\")
-                mgr_path += f\"-[:{rel_clean}]-(:{target_node} {{name: '{safe_name}'}})\"
+            if j == len(rels) - 1 and name != "Unknown":
+                safe_name = name.replace("'", "\\\\'")
+                mgr_path += f"-[:{rel_clean}]-(:{target_node} {{name: '{safe_name}'}})"
             else:
-                mgr_path += f\"-[:{rel_clean}]-(:{target_node})\"
+                mgr_path += f"-[:{rel_clean}]-(:{target_node})"
                 
         itemsets.append(mgr_path)
         
-    return \" AND \".join(itemsets)
+    return " AND ".join(itemsets)
 
-def translate_to_mgr_syntax(row, rule_name=\"GeneratedRule\"):
-    \"\"\"
+def translate_to_mgr_syntax(row, rule_name="GeneratedRule"):
+    """
     Translates a rule dataframe row into the declarative MINE GRAPH RULE syntax.
-    \"\"\"
+    """
     anchor = row.get('Anchor Label', 'UnknownAnchor')
     body = row.get('Body', '')
     body_names = row.get('Body Node Names', '')
@@ -168,18 +168,18 @@ def translate_to_mgr_syntax(row, rule_name=\"GeneratedRule\"):
     
     # Construct the operator block following the syntax guidelines
     lines = [
-        f\"MINE GRAPH RULE {rule_name}\",
-        f\"GROUPING ON (:{anchor})\"
+        f"MINE GRAPH RULE {rule_name}",
+        f"GROUPING ON (:{anchor})"
     ]
     
     if body_itemset:
-        lines.append(f\"DEFINING BODY AS {body_itemset}\")
+        lines.append(f"DEFINING BODY AS {body_itemset}")
     
     if head_itemset:
         # Align the head indentation with the body clause if body exists
-        prefix = \"         HEAD AS \" if body_itemset else \"DEFINING HEAD AS \"
-        lines.append(f\"{prefix}{head_itemset}\")
+        prefix = "         HEAD AS " if body_itemset else "DEFINING HEAD AS "
+        lines.append(f"{prefix}{head_itemset}")
         
-    lines.append(f\"EXTRACTING RULES WITH SUPPORT > {support} AND CONFIDENCE > {confidence}\")
+    lines.append(f"EXTRACTING RULES WITH SUPPORT > {support} AND CONFIDENCE > {confidence}")
     
-    return \"\\n\".join(lines)
+    return "\\n".join(lines)

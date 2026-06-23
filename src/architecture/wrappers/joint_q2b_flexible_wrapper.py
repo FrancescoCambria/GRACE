@@ -220,15 +220,18 @@ class JointSTQ2BFlexibleModel(nn.Module):
     def forward(self, texts, body_data, head_data):
         body_emb = self.q2b_encoder(body_data)
         head_emb = self.q2b_encoder(head_data)
-        
+
         if self.use_st:
+            # Ensure texts is a list of strings for SentenceTransformer
+            if isinstance(texts, np.ndarray):
+                texts = texts.tolist()
             features = self.st_model.tokenize(texts)
             features = {k: v.to(self.device) for k, v in features.items()}
             st_emb = self.st_projection(self.st_model(features)['sentence_embedding'])
             combined = torch.cat([st_emb, body_emb, head_emb], dim=1)
         else:
             combined = torch.cat([body_emb, head_emb], dim=1)
-            
+
         return self.wdl_model(combined)
 
 class JointSTQ2BFlexibleWrapper(BaseEstimator, ClassifierMixin):
@@ -276,7 +279,8 @@ class JointSTQ2BFlexibleWrapper(BaseEstimator, ClassifierMixin):
         user = os.getenv('NEO4J_USER')
         pw = os.getenv('NEO4J_PASSWORD')
         try:
-            driver = GraphDatabase.driver(uri, auth=(user, pw))
+            from neo4j import basic_auth
+            driver = GraphDatabase.driver(uri, auth=basic_auth(user, pw))
             with driver.session() as session:
                 for p_str in set(patterns):
                     if not p_str or p_str in self.pattern_to_anchors: continue

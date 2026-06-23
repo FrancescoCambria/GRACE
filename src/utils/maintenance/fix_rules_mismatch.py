@@ -2,14 +2,13 @@ import os
 import csv
 import re
 import pickle
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, basic_auth
 from dotenv import load_dotenv
 
-# Load credentials
-load_dotenv('/home/cambria/MineGraphRule/GRAM/.env')
-uri = os.getenv('NEO4J_URI')
-user = os.getenv('NEO4J_USER')
-pw = os.getenv('NEO4J_PASSWORD')
+# Hardcoded for Spotify dataset
+uri = 'bolt://localhost:23008'
+user = 'neo4j'
+pw = 'mineGraphRule'
 
 # Cache for ID -> Label
 LABEL_CACHE_FILE = "id_label_cache.pkl"
@@ -19,8 +18,14 @@ def get_label(node_id, driver, label_cache):
         return label_cache[node_id]
     
     with driver.session() as session:
-        # Using elementId for Neo4j compatibility
-        res = session.run("MATCH (n) WHERE elementId(n) = $node_id RETURN labels(n)[0] as label", node_id=node_id)
+        # Check if node_id is an integer (Memgraph/Neo4j internal ID)
+        try:
+            node_id_int = int(node_id)
+            res = session.run("MATCH (n) WHERE id(n) = $node_id RETURN labels(n)[0] as label", node_id=node_id_int)
+        except ValueError:
+            # If not an int, it might be a string ID or we might need elementId
+            res = session.run("MATCH (n) WHERE elementId(n) = $node_id RETURN labels(n)[0] as label", node_id=node_id)
+            
         record = res.single()
         if record:
             label = record['label']
@@ -37,8 +42,12 @@ def extract_last_label(pattern):
 
 def fix_mismatch(patterns_str, ids_str, names_str, driver, label_cache):
     patterns = [p.strip() for p in patterns_str.split(", ") if p.strip()]
-    ids = [idx.strip() for idx in ids_str.split(",") if idx.strip()]
-    names = [n.strip() for n in names_str.split(",") if n.strip()]
+    # Sometimes IDs and Names are separated by semicolon or comma, try comma first then semicolon
+    id_sep = ";" if ";" in ids_str else ","
+    name_sep = ";" if ";" in names_str else ","
+    
+    ids = [idx.strip() for idx in ids_str.split(id_sep) if idx.strip()]
+    names = [n.strip() for n in names_str.split(name_sep) if n.strip()]
     
     if not ids:
         return patterns_str, ids_str, names_str
@@ -81,10 +90,10 @@ def fix_mismatch(patterns_str, ids_str, names_str, driver, label_cache):
     if not new_ids:
         return patterns_str, ids_str, names_str
 
-    return ", ".join(new_patterns), ",".join(new_ids), ",".join(new_names)
+    return ", ".join(new_patterns), id_sep.join(new_ids), name_sep.join(new_names)
 
 def process_files():
-    input_dir = "RulesSpotify/LLMLogic"
+    input_dir = "rules/spotify"
     if not os.path.exists(input_dir):
         print(f"Directory {input_dir} not found.")
         return
@@ -96,7 +105,8 @@ def process_files():
     else:
         label_cache = {}
 
-    driver = GraphDatabase.driver(uri, auth=(user, pw))
+    auth = basic_auth(user, pw) if user and pw else None
+    driver = GraphDatabase.driver(uri, auth=auth)
     
     try:
         files = [f for f in os.listdir(input_dir) if f.endswith(".csv")]

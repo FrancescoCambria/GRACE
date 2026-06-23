@@ -125,8 +125,11 @@ class JointSTQ2BAvgWDLModel(nn.Module):
         self.wdl_model = WDL(linear_feature_columns=self.feature_columns, dnn_feature_columns=self.feature_columns, dnn_hidden_units=dnn_hidden_units, task='binary', device=device)
         
     def forward(self, texts, body_patterns, head_patterns, pattern_to_anchor_ids):
+        # Ensure texts is a list of strings for SentenceTransformer
+        if isinstance(texts, np.ndarray):
+            texts = texts.tolist()
         features = self.st_model.tokenize(texts)
-        features = {k: v.to(self.device) for k, v in features.items()}
+        features = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v for k, v in features.items()}
         st_emb = self.st_projection(self.st_model(features)['sentence_embedding'])
         body_emb = self.q2b_encoder(body_patterns, pattern_to_anchor_ids)
         head_emb = self.q2b_encoder(head_patterns, pattern_to_anchor_ids)
@@ -174,7 +177,8 @@ class JointSTQ2BAvgDeepCTRWrapper(BaseEstimator, ClassifierMixin):
         password = os.getenv('NEO4J_PASSWORD', 'mineGraphRule')
         
         try:
-            driver = GraphDatabase.driver(uri, auth=(user, password))
+            from neo4j import basic_auth
+            driver = GraphDatabase.driver(uri, auth=basic_auth(user, password))
             with driver.session() as session:
                 for p_str in unique_patterns:
                     if not p_str or p_str in self.pattern_to_anchor_ids: continue
