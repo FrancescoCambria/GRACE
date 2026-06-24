@@ -348,6 +348,7 @@ def main():
         
         for run_id in range(1, current_args.runs + 1):
             print(f"  Run {run_id}/{current_args.runs}...")
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
             try:
                 if args.mode == "joint":
                     metrics, epochs, cat_metrics, crit_metrics = run_joint_learning_task(current_args, config['input'], run_id)
@@ -373,7 +374,14 @@ def main():
                     model_name = current_args.baseline_model
                     if model_name not in configs:
                         raise ValueError(f"Unknown baseline model: {model_name}. Available: {list(configs.keys())}")
-                    clf = configs[model_name]()
+                    
+                    wrapper_kwargs = {
+                        'epochs': current_args.epochs,
+                        'learning_rate': current_args.lr,
+                        'batch_size': current_args.batch_size,
+                        'device': device
+                    }
+                    clf = configs[model_name](**wrapper_kwargs)
                     res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), model_name, clf)
                     metrics = {k: v for k, v in res.items() if k in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']}
                     epochs = 0
