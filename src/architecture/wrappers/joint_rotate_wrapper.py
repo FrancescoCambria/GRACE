@@ -308,8 +308,15 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         print("Preprocessing patterns with Neo4j and RotatE embeddings...")
         body_rotate_embs, head_rotate_embs = self._prepare_data(X_body, X_body_names, X_head, X_head_names, anchor_labels)
         
+        nentity = len(self.entity_dict)
+        if nentity == 0 and self.entity_emb_matrix is not None:
+            nentity = self.entity_emb_matrix.shape[0]
+            print(f"[WARNING] entity_dict is empty, using nentity={nentity} from loaded checkpoint embedding matrix.")
+        elif nentity == 0:
+            nentity = 1000000
+
         rotate_params = {
-            'nentity': len(self.entity_dict) or 1000000,
+            'nentity': nentity,
             'hidden_dim': self.rotate_hidden_dim,
             'learned_dim': self.rotate_learned_dim,
             'initial_entity_emb': self.entity_emb_matrix

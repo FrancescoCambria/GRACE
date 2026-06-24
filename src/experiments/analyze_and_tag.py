@@ -373,7 +373,14 @@ def main():
         # Determine which criteria columns to actually add
         cols_to_add = []
         if args.all_criteria:
-            cols_to_add = list(crit_df.columns)
+            is_law = 'law' in args.input.lower()
+            for c in crit_df.columns:
+                if c.startswith('Criteria_'):
+                    c_is_law = c.startswith('Criteria_Law_') or c.endswith('Law')
+                    if is_law == c_is_law:
+                        cols_to_add.append(c)
+                else:
+                    cols_to_add.append(c)
         else:
             cols_to_add = [c for c in requested_criteria if c in crit_df.columns]
             

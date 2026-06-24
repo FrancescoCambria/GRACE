@@ -317,7 +317,14 @@ class JointSTQ2BFlexibleWrapper(BaseEstimator, ClassifierMixin):
             if 'relation_embedding' in state: q2b_init['initial_relation_emb'] = state['relation_embedding'].cpu().numpy()
             if 'offset_embedding' in state: q2b_init['initial_offset_emb'] = state['offset_embedding'].cpu().numpy()
         
-        q2b_params = {'nentity': len(self.entity_dict) or 1000000, 'nrelation': len(self.relation_dict) or 100, 'hidden_dim': self.q2b_hidden_dim, 'learned_dim': self.q2b_learned_dim, 'mode': self.mode, **q2b_init}
+        nentity = len(self.entity_dict)
+        if nentity == 0 and 'initial_entity_emb' in q2b_init:
+            nentity = q2b_init['initial_entity_emb'].shape[0]
+            print(f"[WARNING] entity_dict is empty, using nentity={nentity} from loaded checkpoint.")
+        elif nentity == 0:
+            nentity = 1000000
+
+        q2b_params = {'nentity': nentity, 'nrelation': len(self.relation_dict) or 100, 'hidden_dim': self.q2b_hidden_dim, 'learned_dim': self.q2b_learned_dim, 'mode': self.mode, **q2b_init}
         self.model = JointSTQ2BFlexibleModel(self.st_model_name, q2b_params, use_st=self.use_st, st_learned_dim=self.st_learned_dim, dnn_hidden_units=self.dnn_hidden_units, device=self.device)
         self.model.to(self.device)
         

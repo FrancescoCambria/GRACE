@@ -230,7 +230,14 @@ class JointSTQ2BAvgDeepCTRWrapper(BaseEstimator, ClassifierMixin):
             state = torch.load(self.checkpoint_path, map_location='cpu')['model_state_dict']
             q2b_init = {'initial_entity_emb': state['entity_embedding'].cpu().numpy(), 'initial_relation_emb': state['relation_embedding'].cpu().numpy()}
             if 'offset_embedding' in state: q2b_init['initial_offset_emb'] = state['offset_embedding'].cpu().numpy()
-        q2b_params = {'nentity': len(self.entity_dict) or 1000000, 'nrelation': len(self.relation_dict) or 100, 'hidden_dim': self.q2b_hidden_dim, 'learned_dim': self.q2b_learned_dim, **q2b_init}
+        nentity = len(self.entity_dict)
+        if nentity == 0 and 'initial_entity_emb' in q2b_init:
+            nentity = q2b_init['initial_entity_emb'].shape[0]
+            print(f"[WARNING] entity_dict is empty, using nentity={nentity} from loaded checkpoint.")
+        elif nentity == 0:
+            nentity = 1000000
+
+        q2b_params = {'nentity': nentity, 'nrelation': len(self.relation_dict) or 100, 'hidden_dim': self.q2b_hidden_dim, 'learned_dim': self.q2b_learned_dim, **q2b_init}
         self.model = JointSTQ2BAvgWDLModel(self.st_model_name, q2b_params, self.st_learned_dim, self.dnn_hidden_units, self.device)
         self.model.to(self.device)
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)

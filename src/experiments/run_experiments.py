@@ -223,6 +223,7 @@ def main():
     parser.add_argument("--input", nargs="+", required=True, help="Input dataset path(s).")
     parser.add_argument("--sep", default=";", help="CSV separator.")
     parser.add_argument("--mode", choices=["joint", "baseline"], default="joint", help="Experiment mode.")
+    parser.add_argument("--baseline_model", nargs="+", default=["Random Forest"], help="Baseline classifier(s) to run (e.g. 'Random Forest', 'SVM', 'Logistic Regression', 'Neural Network (MLP)', 'Wide & Deep').")
     parser.add_argument("--include", nargs="+", default=["st"], help="Components to include: st, rotate, q2b, metrics, instances, mgr.")
     
     # Hyperparameters (Supports multiple values for Grid Search)
@@ -256,6 +257,7 @@ def main():
     
     args = parser.parse_args()
 
+    port = None
     # Dataset-specific defaults
     if args.dataset == "spotify":
         port = 23008
@@ -264,7 +266,7 @@ def main():
         if not args.checkpoint:
             args.checkpoint = "kge/models/spotify_model/checkpoint"
     elif args.dataset == "law":
-        port = 23006
+        port = 37688
         if not args.entities_dict:
             args.entities_dict = "kge/data/law_dataset/entities.dict"
         if not args.checkpoint:
@@ -316,6 +318,9 @@ def main():
         'include_str': to_list(include_options)
     }
     
+    if args.mode == "baseline":
+        grid_params['baseline_model'] = to_list(args.baseline_model)
+    
     keys, values = zip(*grid_params.items())
     grid = [dict(zip(keys, v)) for v in itertools.product(*values)]
     
@@ -354,10 +359,22 @@ def main():
                     valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
                     X = np.stack([X_raw[i] for i in valid_indices])
                     y = df['tag'].values[valid_indices]
+                    
+                    if "metrics" in current_args.include:
+                        metrics_raw = df[['Support', 'Confidence']].fillna(0).values[valid_indices]
+                        scaler_m = StandardScaler()
+                        metrics_scaled = scaler_m.fit_transform(metrics_raw)
+                        X = np.hstack([X, metrics_scaled])
+                        
                     scaler = StandardScaler()
                     X_scaled = scaler.fit_transform(X)
-                    from src.architecture.wrappers.wide_deep_wrapper import WideDeepWrapper
-                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), "WideDeep", WideDeepWrapper())
+                    
+                    configs = get_model_configs()
+                    model_name = current_args.baseline_model
+                    if model_name not in configs:
+                        raise ValueError(f"Unknown baseline model: {model_name}. Available: {list(configs.keys())}")
+                    clf = configs[model_name]()
+                    res = run_experiment(X_scaled, y, int((1-config['test_size'])*100), os.path.basename(config['input']), model_name, clf)
                     metrics = {k: v for k, v in res.items() if k in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']}
                     epochs = 0
                     cat_metrics = {}
