@@ -217,6 +217,36 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
     actual_epochs = len(model.history_['train_loss']) if hasattr(model, 'history_') else 0
     return metrics, actual_epochs, per_category_metrics, per_criteria_metrics
 
+def resolve_embedded_file(input_path, include_features):
+    if "st" in include_features and "rotate" in include_features:
+        suffix = "Combined"
+    elif "st" in include_features:
+        suffix = "ST"
+    elif "rotate" in include_features:
+        suffix = "RotatE"
+    else:
+        # Metrics only: use the raw input file directly
+        return input_path
+
+    dir_name = os.path.dirname(input_path)
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    
+    candidates = [
+        os.path.join(dir_name, "embedded", f"{base_name}_{suffix}.csv"),
+        os.path.join(dir_name, "embedded_baselines", f"{base_name}_{suffix}.csv"),
+        os.path.join(dir_name, f"{base_name}_{suffix}.csv")
+    ]
+    
+    for cand in candidates:
+        if os.path.exists(cand):
+            return cand
+            
+    raise FileNotFoundError(
+        f"Could not find pre-computed {suffix} embeddings for {input_path}.\n"
+        f"Looked in:\n" + "\n".join([f" - {c}" for c in candidates]) + "\n"
+        f"Please run generate_all_embeddings.py first to create them."
+    )
+
 def main():
     parser = argparse.ArgumentParser(description="Unified Experiment Runner")
     # Core Config
@@ -333,7 +363,7 @@ def main():
         current_args = argparse.Namespace(**vars(args))
         for k, v in config.items():
             if k == 'include_str':
-                current_args.include = v.split(",")
+                current_args.include = [part.strip().lower() for part in v.split(",") if part.strip()]
             elif k == 'lr_scheduler':
                 current_args.use_lr_scheduler = v
             else:
@@ -348,25 +378,52 @@ def main():
         
         for run_id in range(1, current_args.runs + 1):
             print(f"  Run {run_id}/{current_args.runs}...")
-            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            device = 'cpu' if args.mode == 'baseline' else ('cuda' if torch.cuda.is_available() else 'cpu')
             try:
                 if args.mode == "joint":
                     metrics, epochs, cat_metrics, crit_metrics = run_joint_learning_task(current_args, config['input'], run_id)
                 else:
                     # Baseline logic
-                    df = pd.read_csv(config['input'], sep=args.sep)
-                    emb_col = 'Embedding' if 'Embedding' in df.columns else 'Combined_Embedding'
-                    X_raw = df[emb_col].apply(parse_embedding).values
-                    valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
-                    X = np.stack([X_raw[i] for i in valid_indices])
-                    y = df['tag'].values[valid_indices]
+                    include_features = current_args.include
+                    resolved_input = resolve_embedded_file(config['input'], include_features)
+                    print(f"    Resolved baseline dataset to: {resolved_input}")
+                    df = pd.read_csv(resolved_input, sep=args.sep)
+                    X_parts = []
+                    valid_indices = None
                     
-                    if "metrics" in current_args.include:
+                    if "st" in include_features or "rotate" in include_features:
+                        emb_col = 'Embedding' if 'Embedding' in df.columns else 'Combined_Embedding'
+                        X_raw = df[emb_col].apply(parse_embedding).values
+                        valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
+                        X_emb = np.stack([X_raw[i] for i in valid_indices])
+                        X_parts.append(X_emb)
+                    else:
+                        valid_indices = list(range(len(df)))
+                        
+                    if "metrics" in include_features:
                         metrics_raw = df[['Support', 'Confidence']].fillna(0).values[valid_indices]
                         scaler_m = StandardScaler()
                         metrics_scaled = scaler_m.fit_transform(metrics_raw)
-                        X = np.hstack([X, metrics_scaled])
+                        if X_parts:
+                            # Balance metrics weight: tile to always be exactly 384 dimensions
+                            target_dim = 384
+                            repeats = (target_dim + 1) // 2
+                            metrics_balanced = np.tile(metrics_scaled, (1, repeats))[:, :target_dim]
+                            X_parts.append(metrics_balanced)
+                            print(f"    Balanced metrics weight: tiled 2-dim metrics to 384-dim.")
+                        else:
+                            X_parts.append(metrics_scaled)
                         
+                    if not X_parts:
+                        emb_col = 'Embedding' if 'Embedding' in df.columns else 'Combined_Embedding'
+                        X_raw = df[emb_col].apply(parse_embedding).values
+                        valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
+                        X_emb = np.stack([X_raw[i] for i in valid_indices])
+                        X_parts.append(X_emb)
+                        
+                    X = np.hstack(X_parts) if len(X_parts) > 1 else X_parts[0]
+                    y = df['tag'].values[valid_indices]
+                    
                     scaler = StandardScaler()
                     X_scaled = scaler.fit_transform(X)
                     

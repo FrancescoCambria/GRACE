@@ -10,6 +10,8 @@ def parse_embedding(x):
     Handles space-separated strings, comma-separated strings, and JSON-formatted strings.
     """
     if isinstance(x, str):
+        # Remove any np.float32() or np.float64() wrappers
+        x = re.sub(r'np\.float\d*\(', '', x).replace(')', '')
         x = x.strip('[]')
         try:
             if ',' in x:
