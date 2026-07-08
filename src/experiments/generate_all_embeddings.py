@@ -96,7 +96,7 @@ def main():
 
     # 3. Load SentenceTransformer
     print("Loading SentenceTransformer model...")
-    st_model = SentenceTransformer(args.st_model_name)
+    st_model = SentenceTransformer(args.st_model_name, device='cpu')
 
     # 4. Helper to compute pattern embedding
     def get_pattern_embedding(pattern_str, names_str, session):

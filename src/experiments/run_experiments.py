@@ -280,6 +280,7 @@ def main():
     
     # Output
     parser.add_argument("--output_report", default="reports/experiment_results.csv", help="CSV report path.")
+    parser.add_argument("--output_runs", default="reports/experiment_runs.csv", help="CSV report path for individual runs.")
     parser.add_argument("--log_file", default="reports/experiment_log.txt", help="Detailed log path.")
 
     # Dataset-specific port selection
@@ -324,6 +325,7 @@ def main():
     # Output with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_report = args.output_report.replace(".csv", f"_{timestamp}.csv")
+    output_runs = args.output_runs.replace(".csv", f"_{timestamp}.csv")
     log_file = args.log_file.replace(".txt", f"_{timestamp}.txt")
 
     # Generate Grid
@@ -357,6 +359,7 @@ def main():
     print(f"Starting {len(grid)} configurations with {args.runs} runs each...")
     
     all_results = []
+    all_runs_results = []
     
     for config in grid:
         # Update args with current grid config
@@ -451,6 +454,48 @@ def main():
                     run_cat_metrics.append(cat_metrics)
                 if crit_metrics:
                     run_crit_metrics.append(crit_metrics)
+
+                # Construct and save individual run-level rows
+                run_row_overall = {
+                    'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Dataset': os.path.basename(config['input']),
+                    'Include': "+".join(current_args.include),
+                    'Run': run_id,
+                    'Type': 'Overall'
+                }
+                # Add command line args
+                for key, value in vars(current_args).items():
+                    if key not in ['input', 'include', 'output_report', 'output_runs', 'log_file', 'sep']:
+                        run_row_overall[key] = value
+                
+                # Add metrics
+                for m in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
+                    run_row_overall[m] = metrics.get(m, np.nan)
+                
+                all_runs_results.append(run_row_overall)
+                
+                # Category run rows
+                if cat_metrics:
+                    for cat, cat_m in cat_metrics.items():
+                        run_row_cat = run_row_overall.copy()
+                        run_row_cat['Type'] = 'Category'
+                        run_row_cat['Category'] = cat
+                        for m in ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
+                            run_row_cat[m] = cat_m.get(m, np.nan)
+                        all_runs_results.append(run_row_cat)
+                
+                # Criteria run rows
+                if crit_metrics:
+                    for crit, crit_m in crit_metrics.items():
+                        run_row_crit = run_row_overall.copy()
+                        run_row_crit['Type'] = 'Criteria'
+                        run_row_crit['Category'] = crit
+                        for m in ['Accuracy']:
+                            run_row_crit[m] = crit_m.get(m, np.nan)
+                        # Fill other metrics with NaN as they are not evaluated for Criteria
+                        for m in ['Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
+                            run_row_crit[m] = np.nan
+                        all_runs_results.append(run_row_crit)
             except Exception as e:
                 print(f"    [ERROR] Run {run_id} failed: {e}")
                 import traceback
@@ -475,6 +520,8 @@ def main():
                 vals = [rm[m] for rm in run_metrics]
                 agg_row[f'Avg_{m}'] = np.mean(vals)
                 agg_row[f'Max_{m}'] = np.max(vals)
+                agg_row[f'Std_{m}'] = np.std(vals)
+                agg_row[f'Var_{m}'] = np.var(vals)
             
             all_results.append(agg_row)
             
@@ -491,6 +538,8 @@ def main():
                         if vals:
                             cat_row[f'Avg_{m}'] = np.mean(vals)
                             cat_row[f'Max_{m}'] = np.max(vals)
+                            cat_row[f'Std_{m}'] = np.std(vals)
+                            cat_row[f'Var_{m}'] = np.var(vals)
                     all_results.append(cat_row)
             
             # Criteria aggregation
@@ -501,11 +550,19 @@ def main():
                     crit_row = agg_row.copy()
                     crit_row['Type'] = 'Criteria'
                     crit_row['Category'] = crit
+                    # Clear non-applicable metrics inherited from agg_row copy
+                    for m in ['Precision', 'Recall', 'F1-Score', 'AUC-ROC']:
+                        crit_row[f'Avg_{m}'] = np.nan
+                        crit_row[f'Max_{m}'] = np.nan
+                        crit_row[f'Std_{m}'] = np.nan
+                        crit_row[f'Var_{m}'] = np.nan
                     for m in ['Accuracy']:
                         vals = [rm[crit][m] for rm in run_crit_metrics if crit in rm]
                         if vals:
                             crit_row[f'Avg_{m}'] = np.mean(vals)
                             crit_row[f'Max_{m}'] = np.max(vals)
+                            crit_row[f'Std_{m}'] = np.std(vals)
+                            crit_row[f'Var_{m}'] = np.var(vals)
                     all_results.append(crit_row)
             
             # Log to file
@@ -517,6 +574,12 @@ def main():
         report_df = pd.DataFrame(all_results)
         report_df.to_csv(output_report, index=False)
         print(f"\nDone! Report saved to {output_report}")
+
+    if all_runs_results:
+        os.makedirs(os.path.dirname(output_runs), exist_ok=True)
+        runs_df = pd.DataFrame(all_runs_results)
+        runs_df.to_csv(output_runs, index=False)
+        print(f"Individual runs saved to {output_runs}")
 
 if __name__ == "__main__":
     main()

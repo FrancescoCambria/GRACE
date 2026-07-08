@@ -19,14 +19,8 @@ from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
 
 class RotatEEncoder(nn.Module):
-    def __init__(self, nentity, hidden_dim, learned_dim=None, initial_entity_emb=None):
+    def __init__(self, hidden_dim, learned_dim=None, **kwargs):
         super().__init__()
-        # RotatE entity embeddings are 2 * hidden_dim
-        self.entity_embedding = nn.Embedding(nentity, 2 * hidden_dim)
-        
-        if initial_entity_emb is not None:
-            self.entity_embedding.weight.data.copy_(torch.from_numpy(initial_entity_emb))
-            
         self.hidden_dim = hidden_dim
         out_dim = learned_dim if learned_dim else 2 * hidden_dim
         self.projection = nn.Linear(2 * hidden_dim, out_dim)
@@ -102,7 +96,7 @@ class JointSTRotatEModel(nn.Module):
         return self.wdl_model(combined)
 
 class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
-    def __init__(self, use_st=True, st_model_name='all-MiniLM-L6-v2', st_learned_dim=None, rotate_hidden_dim=192, rotate_learned_dim=64, use_metrics=False, metric_dim=16, entities_dict_path=None, checkpoint_path=None, dnn_hidden_units=(128, 128), epochs=5, batch_size=16, learning_rate=1e-5, device=None, neo4j_env_path='/home/cambria/gram3/ClassificationforMineGraphRule/.env', early_stopping_patience=10, use_lr_scheduler=False, use_instances=False, cache_path='kge/pattern_embeddings_cache.pkl'):
+    def __init__(self, use_st=True, st_model_name='all-MiniLM-L6-v2', st_learned_dim=None, rotate_hidden_dim=192, rotate_learned_dim=64, use_metrics=False, metric_dim=16, entities_dict_path=None, relations_dict_path=None, checkpoint_path=None, dnn_hidden_units=(128, 128), epochs=5, batch_size=16, learning_rate=1e-5, device=None, neo4j_env_path='/home/cambria/gram3/ClassificationforMineGraphRule/.env', early_stopping_patience=10, use_lr_scheduler=False, use_instances=False, cache_path='kge/pattern_structure_cache.pkl'):
         self.use_metrics = use_metrics
         self.metric_dim = metric_dim
         self.use_st = use_st
@@ -111,6 +105,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         self.rotate_hidden_dim = rotate_hidden_dim
         self.rotate_learned_dim = rotate_learned_dim
         self.entities_dict_path = entities_dict_path
+        self.relations_dict_path = relations_dict_path
         self.checkpoint_path = checkpoint_path
         self.dnn_hidden_units = dnn_hidden_units
         self.epochs = epochs
@@ -125,10 +120,17 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         
         self.model = None
         self.entity_dict = {}
+        self.relation_dict = {}
         self.entity_emb_matrix = None
+        self.relation_emb_matrix = None
+        self.embedding_range = 24.0
         self.pattern_cache = {}
         self.history_ = {'train_loss': [], 'val_loss': [], 'lr': []}
         
+        # Automatically resolve relations_dict_path if not provided
+        if not self.relations_dict_path and self.entities_dict_path:
+            self.relations_dict_path = self.entities_dict_path.replace("entities.dict", "relations.dict")
+            
         self._load_dicts_and_embeddings()
         self._load_persistent_cache()
 
@@ -136,14 +138,28 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         if self.entities_dict_path and os.path.exists(self.entities_dict_path):
             with open(self.entities_dict_path, 'r') as f:
                 for line in f:
-                    p = line.strip().split('\t')
+                    p = line.strip().split('	')
                     if len(p) >= 2: self.entity_dict[p[1]] = int(p[0])
+                    
+        if self.relations_dict_path and os.path.exists(self.relations_dict_path):
+            with open(self.relations_dict_path, 'r') as f:
+                for line in f:
+                    p = line.strip().split('	')
+                    if len(p) >= 2: self.relation_dict[p[1]] = int(p[0])
         
         if self.checkpoint_path and os.path.exists(self.checkpoint_path):
-            state = torch.load(self.checkpoint_path, map_location='cpu')['model_state_dict']
+            checkpoint = torch.load(self.checkpoint_path, map_location='cpu')
+            state = checkpoint['model_state_dict']
             if 'entity_embedding' in state:
                 self.entity_emb_matrix = state['entity_embedding'].cpu().numpy()
                 print(f"Loaded entity embeddings from {self.checkpoint_path}, shape: {self.entity_emb_matrix.shape}")
+            if 'relation_embedding' in state:
+                self.relation_emb_matrix = state['relation_embedding'].cpu().numpy()
+                print(f"Loaded relation embeddings from {self.checkpoint_path}, shape: {self.relation_emb_matrix.shape}")
+            if 'embedding_range' in state:
+                self.embedding_range = state['embedding_range'].item()
+            elif 'embedding_range' in checkpoint:
+                self.embedding_range = checkpoint['embedding_range']
 
     def _load_persistent_cache(self):
         if os.path.exists(self.cache_path):
@@ -166,8 +182,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         except Exception as e:
             print(f"Error saving persistent cache: {e}")
 
-    def _get_pattern_embedding(self, pattern_str, names_str, anchor_label, session):
-        # Cache check
+    def _get_pattern_structure(self, pattern_str, names_str, anchor_label, session):
         cache_key = (pattern_str, names_str) if self.use_instances else pattern_str
         if cache_key in self.pattern_cache:
             return self.pattern_cache[cache_key]
@@ -184,7 +199,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         else:
             names_list = []
         
-        path_embeddings = []
+        all_paths_structure = []
         
         for i, part in enumerate(parts):
             target_name = names_list[i].strip() if i < len(names_list) and self.use_instances else None
@@ -203,7 +218,7 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
                         node_clauses.append(f"(n{j}:{label})")
                         where_clauses.append(f"id(n{j}) = {target_name}")
                     else:
-                        safe_name = target_name.replace("'", "\\'")
+                        safe_name = target_name.replace("'", "\'")
                         node_clauses.append(f"(n{j}:{label} {{name: '{safe_name}'}})")
                 else:
                     node_clauses.append(f"(n{j}:{label})")
@@ -215,47 +230,125 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
             query = f"{match_clause}"
             if where_clauses:
                 query += " WHERE " + " AND ".join(where_clauses)
-            query += " RETURN p LIMIT 50"
+            query += " RETURN p"
             
-            instance_embeddings = []
             try:
                 result = session.run(query)
                 for record in result:
                     path = record["p"]
                     nodes = list(path.nodes)
-                    node_vectors = []
-                    for node in nodes:
-                        potential_keys = []
-                        if "name" in node: potential_keys.append(node["name"])
-                        if "title" in node: potential_keys.append(node["title"])
-                        potential_keys.append(str(node.id))
-                        
-                        for key in potential_keys:
-                            if key in self.entity_dict:
-                                node_vectors.append(self.entity_emb_matrix[self.entity_dict[key]])
-                                break
+                    relationships = list(path.relationships)
                     
-                    if node_vectors:
-                        # Average embeddings WITHIN this path instance
-                        instance_embeddings.append(np.mean(node_vectors, axis=0))
+                    if not nodes: continue
+                    
+                    # Start node KGE ID
+                    start_node = nodes[0]
+                    start_key = None
+                    potential_keys = []
+                    if "name" in start_node: potential_keys.append(start_node["name"])
+                    if "title" in start_node: potential_keys.append(start_node["title"])
+                    potential_keys.append(str(start_node.id))
+                    
+                    for key in potential_keys:
+                        if key in self.entity_dict:
+                            start_key = key
+                            break
+                            
+                    if start_key is None: continue
+                    start_id = self.entity_dict[start_key]
+                    
+                    # Relation KGE IDs
+                    rel_ids = []
+                    for rel in relationships:
+                        if rel.type in self.relation_dict:
+                            rel_ids.append(self.relation_dict[rel.type])
+                            
+                    all_paths_structure.append((start_id, rel_ids))
             except Exception:
                 pass
-            
-            if instance_embeddings:
-                # Average embeddings ACROSS all instances of this part of the pattern
-                path_embeddings.append(np.mean(instance_embeddings, axis=0))
-            else:
-                # Fallback to zeros if no instance found
-                path_embeddings.append(np.zeros(2 * self.rotate_hidden_dim))
+                
+        self.pattern_cache[cache_key] = all_paths_structure
+        return all_paths_structure
+
+    def _compute_embeddings_from_structure(self, paths_structure):
+        embs = []
+        for paths in paths_structure:
+            if not paths:
+                embs.append(np.zeros(2 * self.rotate_hidden_dim))
+                continue
+                
+            path_vectors = []
+            for start_ent_id, rel_ids in paths:
+                if self.entity_emb_matrix is None:
+                    curr_emb = np.zeros(2 * self.rotate_hidden_dim)
+                else:
+                    curr_emb = self.entity_emb_matrix[start_ent_id]
+                
+                curr_x = curr_emb[:self.rotate_hidden_dim]
+                curr_y = curr_emb[self.rotate_hidden_dim:]
+                
+                for rel_id in rel_ids:
+                    if self.relation_emb_matrix is not None:
+                        rel_emb = self.relation_emb_matrix[rel_id]
+                        pi = 3.14159265358979323846
+                        phase = rel_emb / (self.embedding_range / pi)
+                        cos_r = np.cos(phase)
+                        sin_r = np.sin(phase)
+                        
+                        x_new = curr_x * cos_r - curr_y * sin_r
+                        y_new = curr_x * sin_r + curr_y * cos_r
+                        curr_x, curr_y = x_new, y_new
+                        
+                path_vectors.append(np.concatenate([curr_x, curr_y]))
+                
+            embs.append(np.mean(path_vectors, axis=0))
+        return torch.tensor(np.array(embs), dtype=torch.float32)
+
+    def _update_kge_embeddings(self, body_grad, head_grad, body_paths, head_paths):
+        entity_grads = {}
         
-        # Average results from all pattern parts (if multiple)
-        if path_embeddings:
-            final_emb = np.mean(path_embeddings, axis=0)
-        else:
-            final_emb = np.zeros(2 * self.rotate_hidden_dim)
-            
-        self.pattern_cache[cache_key] = final_emb
-        return final_emb
+        def accumulate(grad_tensor, paths_list):
+            for rule_idx, rule_grad in enumerate(grad_tensor):
+                paths = paths_list[rule_idx]
+                if not paths: continue
+                num_paths = len(paths)
+                
+                for start_ent_id, rel_ids in paths:
+                    g_x = rule_grad[:self.rotate_hidden_dim]
+                    g_y = rule_grad[self.rotate_hidden_dim:]
+                    
+                    # Compute cumulative rotation along the path
+                    cos_cum, sin_cum = 1.0, 0.0
+                    for rel_id in rel_ids:
+                        if self.relation_emb_matrix is not None:
+                            rel_emb = self.relation_emb_matrix[rel_id]
+                            pi = 3.14159265358979323846
+                            phase = rel_emb / (self.embedding_range / pi)
+                            cos_r = np.cos(phase)
+                            sin_r = np.sin(phase)
+                            
+                            cos_new = cos_cum * cos_r - sin_cum * sin_r
+                            sin_new = sin_cum * cos_r + cos_cum * sin_r
+                            cos_cum, sin_cum = cos_new, sin_new
+                            
+                    # Apply inverse rotation to backpropagate to start node
+                    g_start_x = (g_x * cos_cum + g_y * sin_cum) / num_paths
+                    g_start_y = (-g_x * sin_cum + g_y * cos_cum) / num_paths
+                    g_start = np.concatenate([g_start_x, g_start_y])
+                    
+                    if start_ent_id not in entity_grads:
+                        entity_grads[start_ent_id] = np.zeros_like(g_start)
+                    entity_grads[start_ent_id] += g_start
+                    
+        accumulate(body_grad, body_paths)
+        accumulate(head_grad, head_paths)
+        
+        # Apply manual SGD step to update CPU matrix parameters
+        lr = self.learning_rate
+        for ent_id, grad in entity_grads.items():
+            # Clip gradient to prevent exploding updates
+            grad_clipped = np.clip(grad, -1.0, 1.0)
+            self.entity_emb_matrix[ent_id] -= lr * grad_clipped
 
     def _prepare_data(self, X_body, X_body_names, X_head, X_head_names, anchor_labels):
         if os.path.exists(self.neo4j_env_path):
@@ -268,8 +361,8 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         user = os.getenv('NEO4J_USER')
         pw = os.getenv('NEO4J_PASSWORD')
         
-        body_embs = []
-        head_embs = []
+        body_paths = []
+        head_paths = []
         
         # Track if we actually performed any NEW queries
         initial_cache_size = len(self.pattern_cache)
@@ -286,27 +379,26 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
                 for i in range(len(X_body)):
                     if i % 100 == 0:
                         print(f"Processing rule {i}/{len(X_body)}...")
-                    body_emb = self._get_pattern_embedding(X_body[i], X_body_names[i], anchor_labels[i], session)
-                    head_emb = self._get_pattern_embedding(X_head[i], X_head_names[i], anchor_labels[i], session)
-                    body_embs.append(body_emb)
-                    head_embs.append(head_emb)
+                    b_path = self._get_pattern_structure(X_body[i], X_body_names[i], anchor_labels[i], session)
+                    h_path = self._get_pattern_structure(X_head[i], X_head_names[i], anchor_labels[i], session)
+                    body_paths.append(b_path)
+                    head_paths.append(h_path)
             driver.close()
         except Exception as e:
             print(f"\n[CRITICAL WARNING] Neo4j connection error: {e}")
             print("[CRITICAL WARNING] Falling back to zero embeddings for all patterns. This model will likely NOT learn correctly.")
-            # Fallback to zeros
-            body_embs = [np.zeros(2 * self.rotate_hidden_dim) for _ in range(len(X_body))]
-            head_embs = [np.zeros(2 * self.rotate_hidden_dim) for _ in range(len(X_body))]
+            body_paths = [[] for _ in range(len(X_body))]
+            head_paths = [[] for _ in range(len(X_body))]
         
         # Save cache if it has grown
         if len(self.pattern_cache) > initial_cache_size:
             self._save_persistent_cache()
             
-        return torch.tensor(np.array(body_embs), dtype=torch.float32), torch.tensor(np.array(head_embs), dtype=torch.float32)
+        return body_paths, head_paths
 
     def fit(self, X_text, X_body, X_body_names, X_head, X_head_names, anchor_labels, y, X_metrics=None, validation_split=0.2):
         print("Preprocessing patterns with Neo4j and RotatE embeddings...")
-        body_rotate_embs, head_rotate_embs = self._prepare_data(X_body, X_body_names, X_head, X_head_names, anchor_labels)
+        body_paths_struct, head_paths_struct = self._prepare_data(X_body, X_body_names, X_head, X_head_names, anchor_labels)
         
         nentity = len(self.entity_dict)
         if nentity == 0 and self.entity_emb_matrix is not None:
@@ -359,10 +451,9 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         y_t = torch.tensor(y[it], dtype=torch.float32).to(self.device)
         y_v = torch.tensor(y[iv], dtype=torch.float32).to(self.device)
         
-        body_rotate_embs_t = body_rotate_embs[it].to(self.device)
-        head_rotate_embs_t = head_rotate_embs[it].to(self.device)
-        body_rotate_embs_v = body_rotate_embs[iv].to(self.device)
-        head_rotate_embs_v = head_rotate_embs[iv].to(self.device)
+        # Setup validation structures
+        val_body_paths = [body_paths_struct[j] for j in iv]
+        val_head_paths = [head_paths_struct[j] for j in iv]
         
         if getattr(self, 'use_metrics', False) and X_metrics is not None:
             metrics_t = torch.tensor(X_metrics[it], dtype=torch.float32).to(self.device)
@@ -375,24 +466,43 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
         best_val_loss = float('inf')
         best_model_state = None
         patience_counter = 0
-
+ 
         for epoch in range(self.epochs):
             self.model.train()
             total_train_loss = 0
             perm = torch.randperm(len(it))
             for i in range(0, len(it), self.batch_size):
                 idx = perm[i:i+self.batch_size]
+                
+                # Fetch batch structures and generate embeddings dynamically
+                batch_body_paths = [body_paths_struct[it[j]] for j in idx]
+                batch_head_paths = [head_paths_struct[it[j]] for j in idx]
+                
+                batch_body_embs = self._compute_embeddings_from_structure(batch_body_paths)
+                batch_head_embs = self._compute_embeddings_from_structure(batch_head_paths)
+                
+                # Detach and track gradients for input back-propagation
+                body_t = batch_body_embs.to(self.device).detach().requires_grad_(True)
+                head_t = batch_head_embs.to(self.device).detach().requires_grad_(True)
+                
                 optimizer.zero_grad()
                 out = self.model(
                     [X_text[it[j]] for j in idx], 
-                    body_rotate_embs_t[idx], 
-                    head_rotate_embs_t[idx],
+                    body_t, 
+                    head_t,
                     metrics=metrics_t[idx] if metrics_t is not None else None
                 ).squeeze()
                 if out.dim() == 0: out = out.unsqueeze(0)
                 loss = criterion(out, y_t[idx])
                 loss.backward()
                 optimizer.step()
+                
+                # Distribute gradients back to CPU embeddings
+                if body_t.grad is not None and head_t.grad is not None:
+                    body_grad = body_t.grad.cpu().numpy()
+                    head_grad = head_t.grad.cpu().numpy()
+                    self._update_kge_embeddings(body_grad, head_grad, batch_body_paths, batch_head_paths)
+                    
                 total_train_loss += loss.item() * len(idx)
             
             avg_train_loss = total_train_loss / len(it)
@@ -401,6 +511,10 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
             self.model.eval()
             total_val_loss = 0
             with torch.no_grad():
+                # Re-compute validation embeddings using updated CPU embeddings
+                body_rotate_embs_v = self._compute_embeddings_from_structure(val_body_paths).to(self.device)
+                head_rotate_embs_v = self._compute_embeddings_from_structure(val_head_paths).to(self.device)
+                
                 for i in range(0, len(iv), self.batch_size):
                     end = min(i + self.batch_size, len(iv))
                     out = self.model(
@@ -439,9 +553,11 @@ class JointSTRotatEWrapper(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X_text, X_body, X_body_names, X_head, X_head_names, anchor_labels, X_metrics=None):
         self.model.eval()
-        body_rotate_embs, head_rotate_embs = self._prepare_data(X_body, X_body_names, X_head, X_head_names, anchor_labels)
-        body_rotate_embs = body_rotate_embs.to(self.device)
-        head_rotate_embs = head_rotate_embs.to(self.device)
+        body_paths_struct, head_paths_struct = self._prepare_data(X_body, X_body_names, X_head, X_head_names, anchor_labels)
+        
+        # Dynamically compute embeddings using the latest fine-tuned CPU embedding matrix
+        body_rotate_embs = self._compute_embeddings_from_structure(body_paths_struct).to(self.device)
+        head_rotate_embs = self._compute_embeddings_from_structure(head_paths_struct).to(self.device)
         
         if getattr(self, 'use_metrics', False) and X_metrics is not None:
             metrics_tensor = torch.tensor(X_metrics, dtype=torch.float32).to(self.device)

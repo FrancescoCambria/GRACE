@@ -116,11 +116,18 @@ def evaluate_all_criteria(row):
         return clean_text.count(clean_pattern)
 
     # 3. Define Criteria
+    c_ag = count_motif('(Artist)-[OF]->(Genre)', all_raw)
+    c_up = count_motif('(Playlist)-[CREATED_BY]->(User)', all_raw)
+    c_sp = count_motif('(Song)-[IN]->(Playlist)', all_raw)
+    c_as = count_motif('(Artist)-[SING]->(Song)', all_raw)
+    c_pg = count_motif('(Playlist)-[OF]->(Genre)', all_raw)
+
     criteria = {
         # --- Basic Structural ---
-        'Struct_Complex': 1 if is_complex else 0,
-        'Struct_Bridge': 1 if is_bridge else 0,
-        'Struct_Expert': 1 if is_expert else 0,
+        'Struct_Body_User_Playlist_Genre': 1 if (count_motif('(Song)-[IN]->(Playlist)', body_raw) > 0 and count_motif('(Playlist)-[CREATED_BY]->(User)', body_raw) > 0 and count_motif('(Playlist)-[OF]->(Genre)', body_raw) > 0) else 0,
+        'Struct_Head_User_Playlist_Genre': 1 if (count_motif('(Song)-[IN]->(Playlist)', head_raw) > 0 and count_motif('(Playlist)-[CREATED_BY]->(User)', head_raw) > 0 and count_motif('(Playlist)-[OF]->(Genre)', head_raw) > 0) else 0,
+        'Struct_Rule_Artist_Song_Genre': 1 if (count_motif('(Artist)-[SING]->(Song)', all_raw) > 0 and count_motif('(Artist)-[OF]->(Genre)', all_raw) > 0 and count_motif('(Song)-[IN]->(Playlist)', all_raw) > 0) else 0,
+        'Struct_Rule_Artist_User_Genre': 1 if (count_motif('(Artist)-[SING]->(Song)', all_raw) > 0 and count_motif('(Playlist)-[CREATED_BY]->(User)', all_raw) > 0 and count_motif('(Playlist)-[OF]->(Genre)', all_raw) > 0) else 0,
         'Struct_Convergent_Head': 1 if has_convergence else 0,
         'Struct_Shortcut': 1 if is_shortcut else 0,
         'Struct_High_Complexity': 1 if avg_complexity > 2.5 else 0,
@@ -134,12 +141,12 @@ def evaluate_all_criteria(row):
         'Macro_ActivityLifestyle': 1 if macro_hits['activity_lifestyle'] else 0,
         
         # --- Combined Macro/Structural ---
-        'Crit_Global': 1 if macro_hits['latin_global'] else 0,
-        'Crit_Heavy_Expert': 1 if (macro_hits['rock_metal'] and is_expert) else 0,
-        'Crit_Urban_Complex': 1 if (macro_hits['urban_dance'] and is_complex) else 0,
-        'Crit_Traditional_Bridge': 1 if (macro_hits['traditional_roots'] and is_bridge) else 0,
-        'Crit_Wellness_Expert': 1 if (macro_hits['ambient_wellness'] and is_expert) else 0,
-        'Crit_Lifestyle_Complex': 1 if (macro_hits['activity_lifestyle'] and is_complex) else 0,
+        'Crit_Global': 1 if any(kw in all_names for kw in ['mexican', 'banda', 'corridos', 'regional mexicano']) else 0,
+        'Crit_Heavy_Expert': 0,
+        'Crit_Urban_Complex': 0,
+        'Crit_Traditional_Bridge': 0,
+        'Crit_Wellness_Expert': 1 if any(kw in all_names for kw in ['healing', 'meditation', 'yoga', 'calm', 'mindfulness', 'relaxing']) else 0,
+        'Crit_Lifestyle_Complex': 1 if any(kw in all_names for kw in ['quiet', 'hiking', 'camping', 'cool']) else 0,
         
         # --- Motifs (Spotify) ---
         'Motif_Song_User_Playlist': 1 if count_motif('(Song)-[IN]->(Playlist)-[CREATED_BY]->(User)', all_raw) > 0 else 0,
@@ -189,9 +196,10 @@ def evaluate_all_criteria(row):
     ) else 0
 
     criteria['Structural'] = 1 if (
-        criteria['Struct_Complex'] or 
-        criteria['Struct_Bridge'] or 
-        criteria['Struct_Expert']
+        criteria['Struct_Body_User_Playlist_Genre'] or 
+        criteria['Struct_Head_User_Playlist_Genre'] or 
+        criteria['Struct_Rule_Artist_Song_Genre'] or
+        criteria['Struct_Rule_Artist_User_Genre']
     ) else 0
 
     criteria['Genre_Specific'] = 1 if (
@@ -266,9 +274,10 @@ AGGREGATE_CRITERIA = {
         'Criteria_Motif_User_Playlist_2plus'
     ],
     'Criteria_Structural': [
-        'Criteria_Struct_Complex',
-        'Criteria_Struct_Bridge',
-        'Criteria_Struct_Expert'
+        'Criteria_Struct_Body_User_Playlist_Genre',
+        'Criteria_Struct_Head_User_Playlist_Genre',
+        'Criteria_Struct_Rule_Artist_Song_Genre',
+        'Criteria_Struct_Rule_Artist_User_Genre'
     ],
     'Criteria_Genre_Specific': [
         'Criteria_Crit_Global',
