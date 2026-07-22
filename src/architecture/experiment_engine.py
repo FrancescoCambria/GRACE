@@ -1,18 +1,13 @@
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_validate, StratifiedKFold
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, make_scorer
+from src.utils.utils import balanced_train_test_split
 
 def run_experiment(X_all, y_all, train_percent, dataset_name, model_name, model):
     train_size = train_percent / 100.0
     try:
-        stratify = None
-        unique_classes, counts = np.unique(y_all, return_counts=True)
-        if len(unique_classes) > 1 and all(c >= 2 for c in counts):
-             if train_size * len(y_all) >= len(unique_classes) and (1 - train_size) * len(y_all) >= len(unique_classes):
-                stratify = y_all
-
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_all, y_all, train_size=train_size, random_state=42, stratify=stratify
+        X_train, X_test, y_train, y_test = balanced_train_test_split(
+            X_all, y_all, train_size=train_size, random_state=42, stratify=y_all
         )
         
         model.fit(X_train, y_train)

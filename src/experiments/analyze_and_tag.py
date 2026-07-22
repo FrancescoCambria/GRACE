@@ -115,6 +115,18 @@ def evaluate_all_criteria(row):
         clean_pattern = pattern.lower().replace(' ', '')
         return clean_text.count(clean_pattern)
 
+    # Nuanced imbalanced components
+    cite_in_head = "cites" in head_struct
+    two_depts_in_body = body_struct.count("department") >= 2
+    has_article_head = "has_article" in head_struct
+    has_article_body = "has_article" in body_struct
+    welfare_reform_keywords = [
+        "lavoro", "scuola", "istruzione", "occupazione", "previdenza", "salute", "sanità", "sociale", "insegnamento", 
+        "cultura", "spettacolo", "sport", "turismo",
+        "riforma", "fondiaria", "terreni", "espropriazione", "proprietà", "colonizzazione", "irrigazione", "trasformazione"
+    ]
+    has_welfare_reform = any(k in all_names for k in welfare_reform_keywords)
+
     # 3. Define Criteria
     c_ag = count_motif('(Artist)-[OF]->(Genre)', all_raw)
     c_up = count_motif('(Playlist)-[CREATED_BY]->(User)', all_raw)
@@ -185,6 +197,9 @@ def evaluate_all_criteria(row):
         'Law_Welfare_Social': 1 if has_welfare_social else 0,
         'Law_Multi_Citation': 1 if (body_struct.count('cites') + head_struct.count('cites')) >= 2 else 0,
         'Law_Production_Attribution': 1 if (has_production_finance and has_dept) else 0,
+        
+        # --- Domain: Law (Imbalanced) ---
+        'Law_Imbalanced': 1 if (((cite_in_head or two_depts_in_body) and has_welfare_reform) if all_names.strip() else (cite_in_head or (two_depts_in_body and has_article_body and has_article_head))) else 0,
     }
     
     # Special Aggregate Criteria
@@ -225,6 +240,8 @@ def evaluate_all_criteria(row):
         criteria['Law_Multi_Citation'] or 
         criteria['Law_Production_Attribution']
     ) else 0
+
+    criteria['ImbalancedLaw'] = 1 if criteria['Law_Imbalanced'] else 0
     
     # Expert Reasoning & Tag Logic derivation
     reasoning = "Standard Metadata"
@@ -237,7 +254,9 @@ def evaluate_all_criteria(row):
     elif criteria['Genre_Specific']: reasoning, logic = "Genre-specific macro pattern detected", "Genre Specific"
     
     # Law logic prioritization
-    if criteria['Law_Production_Attribution']:
+    if criteria['Law_Imbalanced']:
+        reasoning, logic = "Imbalanced: Nuanced citation, department structure, or welfare/reform topic", "Imbalanced Law"
+    elif criteria['Law_Production_Attribution']:
         reasoning, logic = "Hybrid: Departmental attribution of industrial, craft production, or financial policies", "Production Dept Attribution"
     elif criteria['Law_Multi_Citation']:
         reasoning, logic = "Structural: Multiple legislative citations (complex dependencies)", "Multi Citation"
@@ -302,6 +321,9 @@ AGGREGATE_CRITERIA = {
         'Criteria_Law_Welfare_Social',
         'Criteria_Law_Multi_Citation',
         'Criteria_Law_Production_Attribution'
+    ],
+    'Criteria_ImbalancedLaw': [
+        'Criteria_Law_Imbalanced'
     ]
 }
  

@@ -19,7 +19,7 @@ from src.architecture.wrappers.joint_st_deepctr_wrapper import JointSTDeepCTRWra
 from src.architecture.wrappers.joint_q2b_st_wrapper import JointSTQ2BDeepCTRWrapper
 from src.architecture.wrappers.joint_q2b_flexible_wrapper import JointSTQ2BFlexibleWrapper
 from src.architecture.wrappers.joint_rotate_wrapper import JointSTRotatEWrapper
-from src.utils.utils import parse_embedding
+from src.utils.utils import parse_embedding, balanced_train_test_split
 from src.architecture.models import get_model_configs
 from src.architecture.experiment_engine import run_experiment, run_cross_validation
 
@@ -103,12 +103,7 @@ def run_joint_learning_task(args, dataset_path, run_id=1):
     counts = df['stratify_col'].value_counts()
     df['stratify_col'] = df.apply(lambda row: row['stratify_col'] if counts[row['stratify_col']] >= 2 else f"fallback_{row['tag']}", axis=1)
     
-    indices = np.arange(len(X_text))
-    split_random_state = 42 + run_id
-    try:
-        idx_train, idx_test = train_test_split(indices, test_size=args.test_size, random_state=split_random_state, stratify=df['stratify_col'].values)
-    except:
-        idx_train, idx_test = train_test_split(indices, test_size=args.test_size, random_state=split_random_state, stratify=y)
+    idx_train, idx_test = balanced_train_test_split(indices, test_size=args.test_size, random_state=split_random_state, stratify=y)
 
     if len(idx_train) < len(np.unique(y)):
         warnings.warn(f"Training set size ({len(idx_train)}) too small.")
@@ -240,6 +235,22 @@ def resolve_embedded_file(input_path, include_features):
     for cand in candidates:
         if os.path.exists(cand):
             return cand
+            
+    # Fallback search by stripping common custom suffixes
+    base_name_fallback = base_name
+    for suffix_to_remove in ["_Custom", "_BasicLaw", "_ComplexLaw", "_ImbalancedLaw"]:
+        if suffix_to_remove in base_name_fallback:
+            base_name_fallback = base_name_fallback.replace(suffix_to_remove, "")
+            
+    if base_name_fallback != base_name:
+        fallback_candidates = [
+            os.path.join(dir_name, "embedded", f"{base_name_fallback}_{suffix}.csv"),
+            os.path.join(dir_name, "embedded_baselines", f"{base_name_fallback}_{suffix}.csv"),
+            os.path.join(dir_name, f"{base_name_fallback}_{suffix}.csv")
+        ]
+        for cand in fallback_candidates:
+            if os.path.exists(cand):
+                return cand
             
     raise FileNotFoundError(
         f"Could not find pre-computed {suffix} embeddings for {input_path}.\n"
@@ -390,14 +401,48 @@ def main():
                     include_features = current_args.include
                     resolved_input = resolve_embedded_file(config['input'], include_features)
                     print(f"    Resolved baseline dataset to: {resolved_input}")
-                    df = pd.read_csv(resolved_input, sep=args.sep)
+                    
+                    df = pd.read_csv(config['input'], sep=args.sep)
+                    if len(df.columns) <= 1:
+                        df = pd.read_csv(config['input'], sep=None, engine='python')
+                        
+                    if resolved_input != config['input']:
+                        df_emb = pd.read_csv(resolved_input, sep=args.sep)
+                        if len(df_emb.columns) <= 1:
+                            df_emb = pd.read_csv(resolved_input, sep=None, engine='python')
+                            
+                        # Preprocess keys for merging
+                        for d in [df, df_emb]:
+                            for col in ['Body', 'Head', 'Body Node Names', 'Head Node Names']:
+                                if col not in d.columns:
+                                    if col == 'Body Node Names' and 'Body Node IDs' in d.columns:
+                                        d[col] = d['Body Node IDs']
+                                    elif col == 'Head Node Names' and 'Head Node IDs' in d.columns:
+                                        d[col] = d['Head Node IDs']
+                                    else:
+                                        d[col] = ""
+                                d[col] = d[col].fillna("").astype(str).str.strip()
+                                
+                        emb_col = 'Embedding' if 'Embedding' in df_emb.columns else 'Combined_Embedding'
+                        if emb_col in df_emb.columns:
+                            # Deduplicate df_emb to prevent duplicate rows in the merged DataFrame
+                            df_emb_unique = df_emb.drop_duplicates(subset=['Body', 'Head', 'Body Node Names', 'Head Node Names'])
+                            df = pd.merge(
+                                df,
+                                df_emb_unique[['Body', 'Head', 'Body Node Names', 'Head Node Names', emb_col]],
+                                on=['Body', 'Head', 'Body Node Names', 'Head Node Names'],
+                                how='left'
+                            )
+                        else:
+                            print(f"    [WARNING] Embedding column '{emb_col}' not found in {resolved_input}")
+                            
                     X_parts = []
                     valid_indices = None
                     
                     if "st" in include_features or "rotate" in include_features:
                         emb_col = 'Embedding' if 'Embedding' in df.columns else 'Combined_Embedding'
                         X_raw = df[emb_col].apply(parse_embedding).values
-                        valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
+                        valid_indices = [i for i, emb in enumerate(X_raw) if isinstance(emb, np.ndarray) and emb.size > 0]
                         X_emb = np.stack([X_raw[i] for i in valid_indices])
                         X_parts.append(X_emb)
                     else:
@@ -420,7 +465,7 @@ def main():
                     if not X_parts:
                         emb_col = 'Embedding' if 'Embedding' in df.columns else 'Combined_Embedding'
                         X_raw = df[emb_col].apply(parse_embedding).values
-                        valid_indices = [i for i, emb in enumerate(X_raw) if emb.size > 0]
+                        valid_indices = [i for i, emb in enumerate(X_raw) if isinstance(emb, np.ndarray) and emb.size > 0]
                         X_emb = np.stack([X_raw[i] for i in valid_indices])
                         X_parts.append(X_emb)
                         

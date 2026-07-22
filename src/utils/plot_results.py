@@ -27,6 +27,16 @@ def main():
         default=None, 
         help="If specified, only plot these configurations (e.g., 'metrics', 'st', etc.)."
     )
+    parser.add_argument(
+        "--title",
+        default=None,
+        help="Super title for the entire figure."
+    )
+    parser.add_argument(
+        "--output_name",
+        default="spotify_results_matrix.png",
+        help="Name of the output plot file."
+    )
 
     args = parser.parse_args()
 
@@ -49,14 +59,27 @@ def main():
     dataset_mapping = {
         'RulesSpotify_Genre_Specific_1000_Balanced.csv': 'Music Expert',
         'RulesSpotify_Structural_1000_Balanced.csv': 'Network Analyst',
-        'RulesSpotify_Basic4_1000.csv': 'General User'
+        'RulesSpotify_Basic4_1000.csv': 'General User',
+        'Law_Tagged_1000_Custom.csv': '1000',
+        'Law_Tagged_5000_Custom.csv': '5000'
     }
 
-    row_datasets = [
+    # Dynamically find the datasets present in the Excel file
+    excel_datasets = df['Dataset'].unique().tolist()
+
+    preferred_order = [
         'RulesSpotify_Genre_Specific_1000_Balanced.csv',
         'RulesSpotify_Structural_1000_Balanced.csv',
-        'RulesSpotify_Basic4_1000.csv'
+        'RulesSpotify_Basic4_1000.csv',
+        'Law_Tagged_1000_Custom.csv',
+        'Law_Tagged_5000_Custom.csv'
     ]
+
+    row_datasets = [ds for ds in preferred_order if ds in excel_datasets]
+    # Add any remaining datasets that are not in the preferred order
+    for ds in excel_datasets:
+        if ds not in row_datasets:
+            row_datasets.append(ds)
 
     # Configuration renaming and color mapping
     config_rename = {
@@ -100,8 +123,9 @@ def main():
         print("Error: No configurations left to plot after filtering.")
         return
 
-    # Tighter layout figsize (18x11)
-    fig, axes = plt.subplots(3, 4, figsize=(18, 11), sharex=True)
+    # Tighter layout figsize (dynamic height based on number of datasets)
+    num_rows = len(row_datasets)
+    fig, axes = plt.subplots(num_rows, 4, figsize=(18, 2.5 * num_rows + 0.5), sharex=True, squeeze=False)
 
     # Get unique sorted test sizes
     test_sizes = sorted(df['test_size'].unique())
@@ -111,7 +135,7 @@ def main():
 
     # We will iterate through each row (dataset) and column (metric)
     for row_idx, ds_name in enumerate(row_datasets):
-        ds_label = dataset_mapping[ds_name]
+        ds_label = dataset_mapping.get(ds_name, ds_name.replace('_', ' ').replace('.csv', ''))
         df_ds = df[df['Dataset'] == ds_name]
 
         for col_idx, (metric_col, metric_label) in enumerate(metrics):
@@ -145,26 +169,30 @@ def main():
                 ax.set_ylabel(ds_label, fontsize=14, fontweight='bold')
 
             # X-axis labels and tick configuration
-            ax.set_ylim(0.4, 1)
+            ax.set_ylim(0.6, 1.03)
             ax.set_xticks(test_sizes)
             # Rotate labels 45 degrees and align right to prevent overlap
             ax.set_xticklabels(x_labels, rotation=45, ha='right', fontsize=9)
             
             # X-axis title only on the bottom row
-            if row_idx == 2:
+            if row_idx == num_rows - 1:
                 ax.set_xlabel("Test Size", fontsize=12)
 
             # Style the spines
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
 
-            ax.grid(True, linestyle='--', alpha=0.3)
+            ax.grid(True, which='both', linestyle='--', alpha=0.5, color='gray')
+            ax.set_axisbelow(True)
 
     # Get handles and labels for the legend from the first subplot
     handles, labels = axes[0, 0].get_legend_handles_labels()
     
     # Place a single legend below the subplots, shifted slightly above (y=0.04)
     # Since only 4 configurations will be shown, they will occupy a single line.
+    if args.title:
+        fig.suptitle(args.title, fontsize=20, fontweight='bold', y=0.98)
+
     fig.legend(
         handles, 
         labels, 
@@ -178,9 +206,10 @@ def main():
     )
 
     # Adjusted layout rect: starting bottom at 0.1 to clear the shifted-up legend
-    plt.tight_layout(pad=0.3, w_pad=0.3, h_pad=0.3, rect=[0.01, 0.1, 0.99, 0.98])
+    top_rect = 0.93 if args.title else 0.98
+    plt.tight_layout(pad=0.3, w_pad=0.3, h_pad=0.3, rect=[0.01, 0.1, 0.99, top_rect])
 
-    save_path = os.path.join(output_dir, 'spotify_results_matrix.png')
+    save_path = os.path.join(output_dir, args.output_name)
     plt.savefig(save_path, dpi=300)
     plt.close(fig)
     print(f"Saved comparison matrix plot to: {save_path}")

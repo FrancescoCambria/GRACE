@@ -81,3 +81,74 @@ def calculate_node_metrics(df):
         avg_participation = total_node_instances / (num_unique_nodes * total_rule_instances)
         
     return avg_participation, num_unique_nodes
+
+def balanced_train_test_split(*arrays, test_size=None, train_size=None, random_state=42, stratify=None):
+    """
+    Split arrays or matrices into random train and test subsets such that
+    the training subset has exactly 50% class 0 and 50% class 1,
+    based on the target labels 'stratify' (which must be provided).
+    """
+    if stratify is None:
+        from sklearn.model_selection import train_test_split as sk_split
+        return sk_split(*arrays, test_size=test_size, train_size=train_size, random_state=random_state)
+        
+    y = np.array(stratify)
+    n_samples = len(y)
+    
+    # Calculate train size
+    if train_size is not None:
+        if isinstance(train_size, float):
+            n_train = int(train_size * n_samples)
+        else:
+            n_train = train_size
+    elif test_size is not None:
+        if isinstance(test_size, float):
+            n_train = int((1.0 - test_size) * n_samples)
+        else:
+            n_train = n_samples - test_size
+    else:
+        n_train = int(0.2 * n_samples)
+        
+    k = n_train // 2
+    
+    idx_0 = np.where(y == 0)[0]
+    idx_1 = np.where(y == 1)[0]
+    
+    k = min(k, len(idx_0), len(idx_1))
+    
+    if k == 0:
+        from sklearn.model_selection import train_test_split as sk_split
+        return sk_split(*arrays, test_size=test_size, train_size=train_size, random_state=random_state, stratify=stratify)
+        
+    rng = np.random.default_rng(random_state)
+    
+    train_idx_0 = rng.choice(idx_0, size=k, replace=False)
+    train_idx_1 = rng.choice(idx_1, size=k, replace=False)
+    
+    test_idx_0 = np.setdiff1d(idx_0, train_idx_0)
+    test_idx_1 = np.setdiff1d(idx_1, train_idx_1)
+    
+    train_idx = np.concatenate([train_idx_0, train_idx_1])
+    test_idx = np.concatenate([test_idx_0, test_idx_1])
+    
+    rng.shuffle(train_idx)
+    rng.shuffle(test_idx)
+    
+    res = []
+    for a in arrays:
+        if isinstance(a, np.ndarray):
+            res.append(a[train_idx])
+            res.append(a[test_idx])
+        elif hasattr(a, 'iloc'):
+            res.append(a.iloc[train_idx])
+            res.append(a.iloc[test_idx])
+        elif isinstance(a, list):
+            res.append([a[i] for i in train_idx])
+            res.append([a[i] for i in test_idx])
+        else:
+            arr = np.array(a)
+            res.append(arr[train_idx])
+            res.append(arr[test_idx])
+            
+    return tuple(res)
+
