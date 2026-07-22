@@ -153,9 +153,7 @@ kge/embeddings/
 kge/models/
 models/
 logs/
-reports/plots/
-reports/*.csv
-reports/*.txt
+reports/
 rules/
 RulesSpotify/
 recommenders/
@@ -170,6 +168,3 @@ checkpoint
 *.tsv
 *.zip
 *.tar.gz
-
-# Allow specific documentation or config CSVs if needed
-!reports/all_datasets_metrics.csv

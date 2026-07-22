@@ -37,23 +37,31 @@ Unified executable scripts for running experiments and data preparation:
 
 ## Getting Started
 
-To run the scripts, ensure the project root is in your `PYTHONPATH`:
-```bash
-export PYTHONPATH=$PYTHONPATH:$(pwd)
-```
+### Using `uv` (Recommended)
 
-1. **Tag your data**:
+1. **Install & Sync Environment**:
    ```bash
-   python3 src/experiments/analyze_and_tag.py --input RulesSpotify/merged_variants/RulesSpotify_Merged.csv --criteria Basic4 --all-criteria
+   uv sync
    ```
 
-2. **Run Experiments**:
+2. **Tag your data**:
+   ```bash
+   uv run python src/experiments/analyze_and_tag.py --input RulesSpotify/merged_variants/RulesSpotify_Merged.csv --criteria Basic4 --all-criteria
+   ```
+
+3. **Run Experiments**:
    ```bash
    # Single run with ST and RotatE
-   python3 src/experiments/run_experiments.py --input RulesSpotify/LLMLogic/RulesSpotify_Basic4_1000.csv --include st rotate --lr 2e-5
+   uv run python src/experiments/run_experiments.py --input RulesSpotify/LLMLogic/RulesSpotify_Basic4_1000.csv --include st rotate --lr 2e-5
 
    # Grid search over learning rates and test sizes
-   python3 src/experiments/run_experiments.py --input RulesSpotify/LLMLogic/RulesSpotify_Basic4_1000.csv --include st metrics --lr 1e-5 2e-5 --test_size 0.2 0.5
+   uv run python src/experiments/run_experiments.py --input RulesSpotify/LLMLogic/RulesSpotify_Basic4_1000.csv --include st metrics --lr 1e-5 2e-5 --test_size 0.2 0.5
    ```
 
-Refer to `REORGANIZATION_LOG.md` for a detailed history of architectural changes.
+### Manual Setup (pip)
+
+Ensure the project root is in your `PYTHONPATH`:
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+pip install -e .
+```
