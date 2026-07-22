@@ -152,3 +152,23 @@ def balanced_train_test_split(*arrays, test_size=None, train_size=None, random_s
             
     return tuple(res)
 
+
+def set_seed(seed=42):
+    """
+    Sets global random seeds for Python, NumPy, and PyTorch to ensure 100% reproducibility.
+    """
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    try:
+        import torch
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+    except ImportError:
+        pass
+
+

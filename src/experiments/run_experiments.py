@@ -19,7 +19,7 @@ from src.architecture.wrappers.joint_st_deepctr_wrapper import JointSTDeepCTRWra
 from src.architecture.wrappers.joint_q2b_st_wrapper import JointSTQ2BDeepCTRWrapper
 from src.architecture.wrappers.joint_q2b_flexible_wrapper import JointSTQ2BFlexibleWrapper
 from src.architecture.wrappers.joint_rotate_wrapper import JointSTRotatEWrapper
-from src.utils.utils import parse_embedding, balanced_train_test_split
+from src.utils.utils import parse_embedding, balanced_train_test_split, set_seed
 from src.architecture.models import get_model_configs
 from src.architecture.experiment_engine import run_experiment, run_cross_validation
 
@@ -280,6 +280,7 @@ def main():
     # Fixed Config
     parser.add_argument("--epochs", type=int, default=100, help="Max epochs.")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs per configuration.")
+    parser.add_argument("--seed", type=int, default=42, help="Base random seed for reproducibility.")
     parser.add_argument("--use_lr_scheduler", action="store_true", help="Enable LR scheduler.")
     
     # Paths & Dictionaries
@@ -298,6 +299,7 @@ def main():
     parser.add_argument("--dataset", choices=["law", "spotify"], help="Target dataset (determines Memgraph port).")
     
     args = parser.parse_args()
+    set_seed(args.seed)
 
     port = None
     # Dataset-specific defaults
@@ -391,7 +393,9 @@ def main():
         start_time = time.time()
         
         for run_id in range(1, current_args.runs + 1):
-            print(f"  Run {run_id}/{current_args.runs}...")
+            run_seed = args.seed + run_id - 1
+            set_seed(run_seed)
+            print(f"  Run {run_id}/{current_args.runs} (seed={run_seed})...")
             device = 'cpu' if args.mode == 'baseline' else ('cuda' if torch.cuda.is_available() else 'cpu')
             try:
                 if args.mode == "joint":
